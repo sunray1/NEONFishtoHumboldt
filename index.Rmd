@@ -4,4 +4,90 @@ author: "Chandra Earl"
 date: "2024-08-22"
 output: html_document
 ---
- 
+
+The following code will download data from Upper Big Creek (BIGC) (wadeable stream) in California during 2019. The goal is to characterize the two sampling efforts (bouts) in Humboldt Extension terms using the 'OBIS hack', where the typical star schema approach of DwC is broken. This will include vouchered specimens (Occurrence), DNA sequences (DNA Derived Data), fish abundance measurements (Measurement or Fact) and event ecological data (Humboldt).
+
+# Load libraries
+
+```{r message=FALSE}
+setwd("C:/Users/cearl4/Desktop/Labs/ASU/Stuff/Conferences_Workshops/GBIF_Humbolt2024_workshop/NEONFishtoHumboldt")
+
+library(neonUtilities)
+library(dplyr)
+library(lubridate)
+```
+
+# Download files
+
+<https://data.neonscience.org/data-products/DP1.20107.001>
+
+<https://www.neonscience.org/field-sites/bigc>
+
+## Get Fish Count data
+```{r}
+fish.counts <- loadByProduct(dpID="DP1.20107.001", 
+                           site=c("BIGC"),
+                           startdate="2019-01", 
+                           enddate="2019-12",
+                           check.size = F)
+
+#fish.coi <- loadByProduct(dpID="DP1.20105.001", 
+#                           site=c("BIGC"),
+#                           startdate="2019-01", 
+#                           enddate="2019-12")
+
+#water.quality <- loadByProduct(dpID="DP1.20288.001", 
+#                           site=c("BIGC"),
+#                           startdate="2019-01", 
+#                           enddate="2019-12")
+```
+
+## Get Other Data
+
+First, we need to get the start and end dates for the data from fish counts, since these data are much more coarse than the environmental data is.
+
+```{r}
+events <- ym(unique(format(sort(fish.counts$fsh_fieldData$startDate[order(fish.counts$fsh_fieldData$startDate)]), "%Y-%m")))
+fish.counts.coll.date.ranges <- data.frame(start = events[1], 
+                                           end = events[1])
+
+for (i in 2:length(events)) {
+  # Check if the current date is consecutive with the last date in the range
+  if (events[i] == 
+      fish.counts.coll.date.ranges$end[nrow(fish.counts.coll.date.ranges)] %m+% months(1)) {
+    # Extend the current range if the date is consecutive
+    fish.counts.coll.date.ranges$end[nrow(fish.counts.coll.date.ranges)] <- events[i]
+  } else {
+    # Otherwise, start a new range
+    fish.counts.coll.date.ranges <- rbind(fish.counts.coll.date.ranges, data.frame(start = events[i], 
+                                                                                   end = events[i]))
+  }
+}
+
+#Since NEON data are provided in month packages, finer scale querying is not available.
+fish.counts.coll.date.ranges <- format(fish.counts.coll.date.ranges, "%Y-%m")
+
+fish.counts.coll.date.ranges
+```
+
+Download air temp data
+
+```{r}
+air.temp.SAAT30 <- data.frame()
+
+for (i in 1:nrow(fish.counts.coll.date.ranges)) {
+  start_date <- fish.counts.coll.date.ranges$start[i]
+  end_date <- fish.counts.coll.date.ranges$end[i]
+  
+  air.temp <- loadByProduct(dpID = "DP1.00002.001", 
+                            site = c("BIGC"), 
+                            startdate = start_date, 
+                            enddate = end_date,
+                            check.size = F,
+                            tabl = "SAAT_30min")
+  
+  air.temp.SAAT30 <- rbind(air.temp.SAAT30, air.temp$SAAT_30min)
+  
+}
+```
+
