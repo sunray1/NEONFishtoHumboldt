@@ -369,22 +369,10 @@ event ecological data (Humboldt).</p>
 <h1>Load libraries</h1>
 <pre class="r"><code>setwd(&quot;C:/Users/cearl4/Desktop/Labs/ASU/Stuff/Conferences_Workshops/GBIF_Humbolt2024_workshop/NEONFishtoHumboldt&quot;)
 
-library(neonUtilities)
-library(dplyr)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>library(lubridate)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;lubridate&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     date, intersect, setdiff, union</code></pre>
+library(neonUtilities)</code></pre>
+<pre><code>## Warning: package &#39;neonUtilities&#39; was built under R version 4.3.3</code></pre>
+<pre class="r"><code>library(dplyr)
+library(lubridate)</code></pre>
 </div>
 <div id="download-files" class="section level1">
 <h1>Download files</h1>
@@ -414,18 +402,13 @@ library(dplyr)</code></pre>
 ## Copied the most recent publication of categoricalCodes file to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 4 data tables and 4 metadata tables!
-## Stacking took 0.986011 secs</code></pre>
+## Stacking took 0.9872751 secs</code></pre>
 <pre class="r"><code>#fish.coi &lt;- loadByProduct(dpID=&quot;DP1.20105.001&quot;, 
 #                           site=c(&quot;BIGC&quot;),
 #                           startdate=&quot;2019-01&quot;, 
 #                           enddate=&quot;2019-12&quot;)
 
 #water.quality &lt;- loadByProduct(dpID=&quot;DP1.20288.001&quot;, 
-#                           site=c(&quot;BIGC&quot;),
-#                           startdate=&quot;2019-01&quot;, 
-#                           enddate=&quot;2019-12&quot;)
-
-#air.temp &lt;- loadByProduct(dpID=&quot;DP1.00002.001&quot;, 
 #                           site=c(&quot;BIGC&quot;),
 #                           startdate=&quot;2019-01&quot;, 
 #                           enddate=&quot;2019-12&quot;)</code></pre>
@@ -489,7 +472,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.5877719 secs</code></pre>
+## Stacking took 0.6129901 secs</code></pre>
 <pre><code>## Warning: Downloading only table SAAT_30min. Downloading by table is not recommended unless you are already familiar with the data product and its contents.</code></pre>
 <pre><code>## Finding available files
 ##   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
@@ -503,7 +486,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.5210981 secs</code></pre>
+## Stacking took 0.5740831 secs</code></pre>
 </div>
 </div>
 
