@@ -9,7 +9,7 @@ The following code will download data from Upper Big Creek (BIGC) (wadeable stre
 
 # Load libraries
 
-```{r message=FALSE}
+```{r message=FALSE, warning=FALSE}
 setwd("C:/Users/cearl4/Desktop/Labs/ASU/Stuff/Conferences_Workshops/GBIF_Humbolt2024_workshop/NEONFishtoHumboldt")
 
 library(neonUtilities)
@@ -72,7 +72,7 @@ fish.counts.coll.date.ranges
 
 Download air temp data
 
-```{r}
+```{r warning=FALSE}
 air.temp.SAAT30 <- data.frame()
 
 for (i in 1:nrow(fish.counts.coll.date.ranges)) {
