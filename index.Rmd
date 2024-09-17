@@ -29,7 +29,8 @@ library(lubridate)
 
 ```{r}
 fish.counts <- loadByProduct(dpID="DP1.20107.001", 
-                           site=c("BIGC"),
+                           site=c("BIGC"),    #stream site
+                           #site=c("PRLA"),   #lake site
                            startdate="2019-01", 
                            enddate="2019-12",
                            check.size = F)
@@ -268,7 +269,183 @@ emof_data <- merge(reach_sampling_mof_data, emof_data, all=TRUE)
 ### Map fsh_perPass
 
 ```{r}
+pass_data <- data.frame(eventID = fish.counts$fsh_perPass$eventID,
+                        parentEventID = fish.counts$fsh_perPass$reachID,
+                        eventType = "pass sampling",
+                        eventDate = as.character(as.Date(fish.counts$fsh_perPass$passStartTime)),
+                        eventTime <- ifelse(fish.counts$fsh_perPass$samplerType == "electrofisher",
+                                            paste(as.character(format(fish.counts$fsh_perPass$passStartTime, "%H:%M:%S%Z")),
+                                                  as.character(format(fish.counts$fsh_perPass$passEndTime, "%H:%M:%S%Z")), sep = "/"),
+                                            paste(as.character(format(fish.counts$fsh_perPass$netSetTime, "%H:%M:%S%Z")),
+                                                  as.character(format(fish.counts$fsh_perPass$netEndTime, "%H:%M:%S%Z")), sep = "/")
+                        ),
+                        eventRemarks = fish.counts$fsh_perPass$remarks,
+                        habitat = paste("Habitat type: ", fish.counts$fsh_perPass$habitatType, "; subDominant Habitat Type: ", fish.counts$fsh_perPass$subdominantHabitatType, sep=""),
+                        eventDurationValue <- ifelse(fish.counts$fsh_perPass$samplerType == "electrofisher",
+                                                     fish.counts$fsh_perPass$passEndTime - fish.counts$fsh_perPass$passStartTime,
+                                                     fish.counts$fsh_perPass$netEndTime - fish.counts$fsh_perPass$netSetTime)
+                        ,
+                        eventDurationUnit = "minutes",
+                        protocolNames = fish.counts$fsh_perPass$samplerType
+                        )
 
+emof_data <- merge(data.frame(measurementID = "XXX",
+                              eventID = fish.counts$fsh_perPass$eventID,
+                              measurementType = "Number of the sampling pass within a reach",
+                              measurementValue = fish.counts$fsh_perPass$passNumber), 
+                   emof_data, all=TRUE)
+emof_data <- merge(data.frame(measurementID = "XXX",
+                              eventID = fish.counts$fsh_perPass$eventID,
+                              measurementType = "Temperature of water",
+                              measurementValue = fish.counts$fsh_perPass$waterTemp,
+                              measurementUnit = "degrees Celsius"), 
+                   emof_data, all=TRUE)
+emof_data <- merge(data.frame(measurementID = "XXX",
+                              eventID = fish.counts$fsh_perPass$eventID,
+                              measurementType = "Dissolved Oxygen Concentration",
+                              measurementValue = fish.counts$fsh_perPass$dissolvedOxygen,
+                              measurementUnit = "milligramsPerLiter"), 
+                   emof_data, all=TRUE)
+emof_data <- merge(data.frame(measurementID = "XXX",
+                              eventID = fish.counts$fsh_perPass$eventID,
+                              measurementType = "Conductivity auto-corrected to 25 degrees C",
+                              measurementValue = fish.counts$fsh_perPass$specificConductance,
+                              measurementUnit = "microsiemensPerCentimeter"), 
+                   emof_data, all=TRUE)
+if (any(!is.na(fish.counts$fsh_perPass$initialFrequency))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialFrequency)],
+                                measurementType = "Frequency at the start of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$initialFrequency[!is.na(fish.counts$fsh_perPass$initialFrequency)],
+                                measurementUnit = "hertz"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$initialDutyCycle))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialDutyCycle)],
+                                measurementType = "Duty cycle at the start of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$initialDutyCycle[!is.na(fish.counts$fsh_perPass$initialDutyCycle)],
+                                measurementUnit = "percent"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$initialVoltage))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialVoltage)],
+                                measurementType = "Voltage at the start of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$initialVoltage[!is.na(fish.counts$fsh_perPass$initialVoltage)],
+                                measurementUnit = "volt"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$finalFrequency))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalFrequency)],
+                                measurementType = "Voltage at the end of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$finalFrequency[!is.na(fish.counts$fsh_perPass$finalFrequency)],
+                                measurementUnit = "hertz"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$finalDutyCycle))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalDutyCycle)],
+                                measurementType = "Duty cycle at the end of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$finalDutyCycle[!is.na(fish.counts$fsh_perPass$finalDutyCycle)],
+                                measurementUnit = "percent"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$finalVoltage))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalVoltage)],
+                                measurementType = "Voltage at the end of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$finalVoltage[!is.na(fish.counts$fsh_perPass$finalVoltage)],
+                                measurementUnit = "volt"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$efTime))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$efTime)],
+                                measurementType = "Operational time of the electrofisher for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$efTime[!is.na(fish.counts$fsh_perPass$efTime)],
+                                measurementUnit = "second"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$settingsChanged))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged)],
+                                measurementType = "Number of times the settings changed for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$settingsChanged[!is.na(fish.counts$fsh_perPass$settingsChanged)]), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$initialFrequency2))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialFrequency2)],
+                                measurementType = "Frequency at the start of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$initialFrequency2[!is.na(fish.counts$fsh_perPass$initialFrequency2)],
+                                measurementUnit = "hertz"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$initialDutyCycle2))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialDutyCycle2)],
+                                measurementType = "Duty cycle at the start of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$initialDutyCycle2[!is.na(fish.counts$fsh_perPass$initialDutyCycle2)],
+                                measurementUnit = "percent"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$initialVoltage2))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialVoltage2)],
+                                measurementType = "Voltage at the start of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$initialVoltage2[!is.na(fish.counts$fsh_perPass$initialVoltage2)],
+                                measurementUnit = "volt"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$finalFrequency2))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalFrequency2)],
+                                measurementType = "Voltage at the end of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$finalFrequency2[!is.na(fish.counts$fsh_perPass$finalFrequency2)],
+                                measurementUnit = "hertz"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$finalDutyCycle2))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalDutyCycle2)],
+                                measurementType = "Duty cycle at the end of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$finalDutyCycle2[!is.na(fish.counts$fsh_perPass$finalDutyCycle2)],
+                                measurementUnit = "percent"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$finalVoltage2))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalVoltage2)],
+                                measurementType = "Voltage at the end of data collection for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$finalVoltage2[!is.na(fish.counts$fsh_perPass$finalVoltage2)],
+                                measurementUnit = "volt"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$efTime2))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$efTime2)],
+                                measurementType = "Operational time of the electrofisher for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$efTime2[!is.na(fish.counts$fsh_perPass$efTime2)],
+                                measurementUnit = "second"), 
+                     emof_data, all = TRUE)
+}
+if (any(!is.na(fish.counts$fsh_perPass$settingsChanged2))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)],
+                                measurementType = "Number of times the settings changed for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$settingsChanged2[!is.na(fish.counts$fsh_perPass$settingsChanged2)]), 
+                     emof_data, all = TRUE)
+}
+#net integrity
+if (any(!is.na(fish.counts$fsh_perPass$settingsChanged2))) {
+  emof_data <- merge(data.frame(measurementID = "XXX",
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)],
+                                measurementType = "Number of times the settings changed for the second electrofisher",
+                                measurementValue = fish.counts$fsh_perPass$settingsChanged2[!is.na(fish.counts$fsh_perPass$settingsChanged2)]), 
+                     emof_data, all = TRUE)
+}
 ```
 
 ### Map fsh_perFish
