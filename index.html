@@ -401,7 +401,7 @@ library(lubridate)</code></pre>
 ## Copied the most recent publication of categoricalCodes file to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 4 data tables and 4 metadata tables!
-## Stacking took 0.852246 secs</code></pre>
+## Stacking took 1.039247 secs</code></pre>
 <pre class="r"><code>#fish.coi &lt;- loadByProduct(dpID=&quot;DP1.20105.001&quot;, 
 #                           site=c(&quot;BIGC&quot;),
 #                           startdate=&quot;2019-01&quot;, 
@@ -471,7 +471,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.590971 secs</code></pre>
+## Stacking took 0.5991569 secs</code></pre>
 <pre><code>## Warning: Downloading only table SAAT_30min. Downloading by table is not recommended unless you are already familiar with the data product and its contents.</code></pre>
 <pre><code>## Finding available files
 ##   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
@@ -485,7 +485,119 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.5602939 secs</code></pre>
+## Stacking took 0.6357219 secs</code></pre>
+</div>
+</div>
+<div id="map-data" class="section level1">
+<h1>Map Data</h1>
+<div id="create-empty-data-frames" class="section level2">
+<h2>Create Empty Data Frames</h2>
+<pre class="r"><code>event_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
+occurrence_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
+emof_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
+multimedia_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
+dnaderived_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))</code></pre>
+</div>
+<div id="create-parent-event-data" class="section level2">
+<h2>Create Parent Event Data</h2>
+<div id="neon-project" class="section level3">
+<h3>NEON Project</h3>
+<pre class="r"><code>NEON_fish_protocol_data &lt;- data.frame(eventID = &quot;NEON_fish&quot;,
+                                      eventType = &quot;eventType&quot;,
+                                      eventDate = paste(&quot;2019-07-01&quot;, Sys.Date(), sep = &quot;/&quot;),
+                                      continent = &quot;North America&quot;,
+                                      country = &quot;United States&quot;,
+                                      targetTaxonomicScope = &quot;Osteichthyes&quot;,
+                                      taxonCompletenessReported = &quot;??&quot;,
+                                      taxonCompletenessProtocols = &quot;??&quot;,
+                                      isTaxonomicScopeFullyReported = &quot;true&quot;,
+                                      isAbsenceReported = &quot;false&quot;,
+                                      hasNonTargetTaxa = &quot;true&quot;,
+                                      nonTargetTaxa = &quot;Amphibia | Reptilia&quot;,
+                                      areNonTargetTaxaFullyReported = &quot;false&quot;,
+                                      targetLifeStageScope = &quot;larval | young of the year | juvenile | adult | gravid&quot;,
+                                      excludedLifeStageScope = &quot;egg&quot;,
+                                      isLifeStageScopeFullyReported = &quot;true&quot;,
+                                      verbatimTargetScope = &quot;freshwater fishes&quot;,
+                                      compilationTypes = &quot;samplingEvents&quot;,
+                                      protocolNames = &quot;electrofishing | gill netting | mini-fyke netting&quot;,
+                                      protocolDescriptions = &quot;Fish are sampled in two sampling bouts per year at lakes and wadeable stream sites, during spring and fall. Ten sampling reaches or segments are established at each site; with 3 fixed reaches sampled during every bout and a random subset of 3 additional reaches or segments selected for sampling each year. Fish are sampled using primarily electrofishing at both lakes and streams. Gill-nets and mini-fyke nets are additionally deployed in lake sites, once per segment per sampling bout.&quot;,
+                                      protocolReferences = &quot;Monahan, D. 2021. AOS Protocol and Procedure: FSL – Fish Sampling in Lakes. NEON.DOC.001296. NEON (National Ecological Observatory Network). | Monahan, D. 2021. AOS Protocol and Procedure: FSS - Fish Sampling in Wadeable Streams. NEON.DOC.001295. NEON (National Ecological Observatory Network).&quot;,
+                                      isAbundanceReported = &quot;true&quot;,
+                                      isAbundanceCapReported = &quot;false&quot;,
+                                      isLeastSpecificTargetCategoryQuantityInclusive = &quot;true&quot;,
+                                      hasVouchers = &quot;true&quot;,
+                                      voucherInstitutions = &quot;Arizona State University Biocollections&quot;,
+                                      hasMaterialSamples = &quot;true&quot;,
+                                      materialSampleTypes = &quot;wholeOrganism | tissue&quot;,
+                                      samplingPerformedBy = &quot;NEON Field Staff&quot;,
+                                      isSamplingEffortReported = &quot;true&quot;,
+                                      samplingEffortProtocol = &quot;A five-day fish sampling period = 1 bout. Sampling bouts should not be longer than 5 days long assuming no weather or other unexpected schedule delays. Typically one bout can be managed by 2 staff. Person hours can be calculated from start times, end times and number of staff in a sampling pass.&quot;
+                                    )</code></pre>
+</div>
+<div id="site-data" class="section level3">
+<h3>Site Data</h3>
+<p><a href="https://data.neonscience.org/api/v0/locations/BIGC" class="uri">https://data.neonscience.org/api/v0/locations/BIGC</a></p>
+<pre class="r"><code>BIGC_data &lt;- data.frame(eventID = &quot;BIGC&quot;,
+                        parentEventID = &quot;NEON_fish&quot;,
+                        eventType = &quot;eventType&quot;,
+                        eventDate = paste(min(fish.counts$fsh_fieldData$startDate, na.rm = TRUE), 
+                                          max(fish.counts$fsh_fieldData$endDate, na.rm = TRUE),
+                                          sep = &quot;/&quot;),
+                        decimalLatitude = 37.059719,
+                        decimalLongitude = -119.257549,
+                        coordinateUncertaintyinMeters = 1000,
+                        habitat = &quot;Aquatic Wadeable Stream&quot;,
+                        geodeticDatum = &quot;WGS84&quot;,
+                        continent = &quot;North America&quot;,
+                        country = &quot;United States&quot;,
+                        stateProvince = &quot;California&quot;,
+                        county = &quot;Fresno County&quot;,
+                        locality = &quot;Pacific Southwest (D17), Upper Big Creek NEON (BIGC)&quot;,
+                        minimumElevationInMeters = 1003,
+                        maximumElevationInMeters = 1700,
+                        siteCount = 10,
+                        siteNestingDescription = &quot;Aquatic stream site divided into 10 reaches&quot;,
+                        verbatimSiteDescriptions = &quot;A wadeable stream on the western slope of the Sierra Nevada Mountains | mixed mature cottonwood trees, short grasses, and shrubs&quot;,
+                        verbatimSiteNames = &quot;BIGC | Upper Big Creek&quot;,
+                        reportedWeather = &quot;{\&quot;minimumWinterTemperatureInDegreesFahrenheit\&quot;: 32,
+                                            \&quot;maximumWinterTemperatureInDegreesFahrenheit\&quot;: 48,
+                                            \&quot;maximumSummerTemperatureInDegreesFahrenheit\&quot;: 57,
+                                            \&quot;maximumSummerTemperatureInDegreesFahrenheit\&quot;: 68,
+                                            \&quot;annualMeanTemperatureInDegreesFahrenheit\&quot;: 56,
+                                            \&quot;annualPrecipitationInInches\&quot;: 34.5}&quot;
+                        
+                        )</code></pre>
+</div>
+</div>
+<div id="map-fish-data" class="section level2">
+<h2>Map Fish Data</h2>
+<div id="map-fsh_fielddata" class="section level3">
+<h3>Map fsh_fieldData</h3>
+<p>Contains data about the reach/segment itself (e.g., location,
+elevation, fixed/random, etc.)</p>
+<pre class="r"><code>reach_data &lt;- unique(fish.counts$fsh_fieldData[, c(&quot;siteID&quot;, 
+                                                   &quot;namedLocation&quot;, 
+                                                   &quot;aquaticSiteType&quot;, 
+                                                   &quot;decimalLatitude&quot;,
+                                                   &quot;decimalLongitude&quot;,
+                                                   &quot;coordinateUncertainty&quot;,
+                                                   &quot;elevation&quot;,
+                                                   &quot;elevationUncertainty&quot;,
+                                                   &quot;geodeticDatum&quot;)])</code></pre>
+</div>
+<div id="map-fsh_perpass" class="section level3">
+<h3>Map fsh_perPass</h3>
+</div>
+<div id="map-fsh_perfish" class="section level3">
+<h3>Map fsh_perFish</h3>
+</div>
+<div id="map-fsh_bulkcount" class="section level3">
+<h3>Map fsh_bulkCount</h3>
+</div>
+<div id="map-fsh_invertbycatch" class="section level3">
+<h3>Map fsh_invertBycatch</h3>
+</div>
 </div>
 </div>
 

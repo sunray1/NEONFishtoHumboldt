@@ -24,6 +24,7 @@ library(lubridate)
 <https://www.neonscience.org/field-sites/bigc>
 
 ## Get Fish Count data
+
 ```{r}
 fish.counts <- loadByProduct(dpID="DP1.20107.001", 
                            site=c("BIGC"),
@@ -91,3 +92,133 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 }
 ```
 
+# Map Data
+
+## Create Empty Data Frames
+
+```{r}
+event_data <- data.frame(matrix(ncol = 0, nrow = 0))
+occurrence_data <- data.frame(matrix(ncol = 0, nrow = 0))
+emof_data <- data.frame(matrix(ncol = 0, nrow = 0))
+multimedia_data <- data.frame(matrix(ncol = 0, nrow = 0))
+dnaderived_data <- data.frame(matrix(ncol = 0, nrow = 0))
+```
+
+## Create Parent Event Data
+
+### NEON Project
+
+```{r}
+NEON_fish_protocol_data <- data.frame(eventID = "NEON_fish",
+                                      eventType = "eventType",
+                                      eventDate = paste("2019-07-01", Sys.Date(), sep = "/"),
+                                      continent = "North America",
+                                      country = "United States",
+                                      targetTaxonomicScope = "Osteichthyes",
+                                      taxonCompletenessReported = "??",
+                                      taxonCompletenessProtocols = "??",
+                                      isTaxonomicScopeFullyReported = "true",
+                                      isAbsenceReported = "false",
+                                      hasNonTargetTaxa = "true",
+                                      nonTargetTaxa = "Amphibia | Reptilia",
+                                      areNonTargetTaxaFullyReported = "false",
+                                      targetLifeStageScope = "larval | young of the year | juvenile | adult | gravid",
+                                      excludedLifeStageScope = "egg",
+                                      isLifeStageScopeFullyReported = "true",
+                                      verbatimTargetScope = "freshwater fishes",
+                                      compilationTypes = "samplingEvents",
+                                      protocolNames = "electrofishing | gill netting | mini-fyke netting",
+                                      protocolDescriptions = "Fish are sampled in two sampling bouts per year at lakes and wadeable stream sites, during spring and fall. Ten sampling reaches or segments are established at each site; with 3 fixed reaches sampled during every bout and a random subset of 3 additional reaches or segments selected for sampling each year. Fish are sampled using primarily electrofishing at both lakes and streams. Gill-nets and mini-fyke nets are additionally deployed in lake sites, once per segment per sampling bout.",
+                                      protocolReferences = "Monahan, D. 2021. AOS Protocol and Procedure: FSL – Fish Sampling in Lakes. NEON.DOC.001296. NEON (National Ecological Observatory Network). | Monahan, D. 2021. AOS Protocol and Procedure: FSS - Fish Sampling in Wadeable Streams. NEON.DOC.001295. NEON (National Ecological Observatory Network).",
+                                      isAbundanceReported = "true",
+                                      isAbundanceCapReported = "false",
+                                      isLeastSpecificTargetCategoryQuantityInclusive = "true",
+                                      hasVouchers = "true",
+                                      voucherInstitutions = "Arizona State University Biocollections",
+                                      hasMaterialSamples = "true",
+                                      materialSampleTypes = "wholeOrganism | tissue",
+                                      samplingPerformedBy = "NEON Field Staff",
+                                      isSamplingEffortReported = "true",
+                                      samplingEffortProtocol = "A five-day fish sampling period = 1 bout. Sampling bouts should not be longer than 5 days long assuming no weather or other unexpected schedule delays. Typically one bout can be managed by 2 staff. Person hours can be calculated from start times, end times and number of staff in a sampling pass."
+                                    )
+```
+
+### Site Data
+
+<https://data.neonscience.org/api/v0/locations/BIGC>
+
+```{r}
+BIGC_data <- data.frame(eventID = "BIGC",
+                        parentEventID = "NEON_fish",
+                        eventType = "eventType",
+                        eventDate = paste(min(fish.counts$fsh_fieldData$startDate, na.rm = TRUE), 
+                                          max(fish.counts$fsh_fieldData$endDate, na.rm = TRUE),
+                                          sep = "/"),
+                        decimalLatitude = 37.059719,
+                        decimalLongitude = -119.257549,
+                        coordinateUncertaintyinMeters = 1000,
+                        habitat = "Aquatic Wadeable Stream",
+                        geodeticDatum = "WGS84",
+                        continent = "North America",
+                        country = "United States",
+                        stateProvince = "California",
+                        county = "Fresno County",
+                        locality = "Pacific Southwest (D17), Upper Big Creek NEON (BIGC)",
+                        minimumElevationInMeters = 1003,
+                        maximumElevationInMeters = 1700,
+                        siteCount = 10,
+                        siteNestingDescription = "Aquatic stream site divided into 10 reaches",
+                        verbatimSiteDescriptions = "A wadeable stream on the western slope of the Sierra Nevada Mountains | mixed mature cottonwood trees, short grasses, and shrubs",
+                        verbatimSiteNames = "BIGC | Upper Big Creek",
+                        reportedWeather = "{\"minimumWinterTemperatureInDegreesFahrenheit\": 32,
+                                            \"maximumWinterTemperatureInDegreesFahrenheit\": 48,
+                                            \"maximumSummerTemperatureInDegreesFahrenheit\": 57,
+                                            \"maximumSummerTemperatureInDegreesFahrenheit\": 68,
+                                            \"annualMeanTemperatureInDegreesFahrenheit\": 56,
+                                            \"annualPrecipitationInInches\": 34.5}"
+                        
+                        )
+```
+
+## Map Fish Data
+
+### Map fsh_fieldData
+
+Contains data about the reach/segment itself (e.g., location, elevation, fixed/random, etc.)
+
+```{r}
+reach_data <- unique(fish.counts$fsh_fieldData[, c("siteID", 
+                                                   "namedLocation", 
+                                                   "aquaticSiteType", 
+                                                   "decimalLatitude",
+                                                   "decimalLongitude",
+                                                   "coordinateUncertainty",
+                                                   "elevation",
+                                                   "elevationUncertainty",
+                                                   "geodeticDatum")])
+
+```
+
+### Map fsh_perPass
+
+```{r}
+
+```
+
+### Map fsh_perFish
+
+```{r}
+
+```
+
+### Map fsh_bulkCount
+
+```{r}
+
+```
+
+### Map fsh_invertBycatch
+
+```{r}
+
+```
