@@ -402,7 +402,7 @@ library(lubridate)</code></pre>
 ## Copied the most recent publication of categoricalCodes file to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 4 data tables and 4 metadata tables!
-## Stacking took 0.867605 secs</code></pre>
+## Stacking took 42.67195 secs</code></pre>
 <pre class="r"><code>#fish.coi &lt;- loadByProduct(dpID=&quot;DP1.20105.001&quot;, 
 #                           site=c(&quot;BIGC&quot;),
 #                           startdate=&quot;2019-01&quot;, 
@@ -472,7 +472,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.589844 secs</code></pre>
+## Stacking took 2.887072 secs</code></pre>
 <pre><code>## Warning: Downloading only table SAAT_30min. Downloading by table is not recommended unless you are already familiar with the data product and its contents.</code></pre>
 <pre><code>## Finding available files
 ##   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
@@ -486,7 +486,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.5429361 secs</code></pre>
+## Stacking took 0.5841079 secs</code></pre>
 </div>
 </div>
 <div id="map-data" class="section level1">
@@ -503,11 +503,15 @@ dnaderived_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))</code></pre>
 <h2>Create Parent Event Data</h2>
 <div id="neon-project" class="section level3">
 <h3>NEON Project</h3>
-<pre class="r"><code>NEON_fish_protocol_data &lt;- data.frame(eventID = &quot;NEON_fish&quot;,
-                                      eventType = &quot;eventType&quot;,
+<pre class="r"><code>#I think sitecount is wrong - should be entire number of sites in dataset
+NEON_fish_protocol_data &lt;- data.frame(eventID = &quot;NEON_fish&quot;,
+                                      parentEventID = NA,
+                                      eventType = &quot;project&quot;,
                                       eventDate = paste(&quot;2019-07-01&quot;, Sys.Date(), sep = &quot;/&quot;),
                                       continent = &quot;North America&quot;,
                                       country = &quot;United States&quot;,
+                                      siteCount = &quot;81&quot;,
+                                      siteNestingDescription = &quot;81 field sites (47 terrestrial and 34 freshwater aquatic)&quot;,
                                       targetTaxonomicScope = &quot;Osteichthyes&quot;,
                                       taxonCompletenessReported = &quot;??&quot;,
                                       taxonCompletenessProtocols = &quot;??&quot;,
@@ -534,14 +538,15 @@ dnaderived_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))</code></pre>
                                       samplingPerformedBy = &quot;NEON Field Staff&quot;,
                                       isSamplingEffortReported = &quot;true&quot;,
                                       samplingEffortProtocol = &quot;A five-day fish sampling period = 1 bout. Sampling bouts should not be longer than 5 days long assuming no weather or other unexpected schedule delays. Typically one bout can be managed by 2 staff. Person hours can be calculated from start times, end times and number of staff in a sampling pass.&quot;
-                                    )</code></pre>
+                                    )
+event_data &lt;- rbind(event_data, NEON_fish_protocol_data)</code></pre>
 </div>
 <div id="site-data" class="section level3">
 <h3>Site Data</h3>
 <p><a href="https://data.neonscience.org/api/v0/locations/BIGC" class="uri">https://data.neonscience.org/api/v0/locations/BIGC</a></p>
 <pre class="r"><code>BIGC_data &lt;- data.frame(eventID = &quot;BIGC&quot;,
                         parentEventID = &quot;NEON_fish&quot;,
-                        eventType = &quot;eventType&quot;,
+                        eventType = &quot;site&quot;,
                         eventDate = paste(min(fish.counts$fsh_fieldData$startDate, na.rm = TRUE), 
                                           max(fish.counts$fsh_fieldData$endDate, na.rm = TRUE),
                                           sep = &quot;/&quot;),
@@ -559,7 +564,7 @@ dnaderived_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))</code></pre>
                         maximumElevationInMeters = 1700,
                         siteCount = 10,
                         siteNestingDescription = &quot;Aquatic stream site divided into 10 reaches&quot;,
-                        verbatimSiteDescriptions = &quot;A wadeable stream on the western slope of the Sierra Nevada Mountains | mixed mature cottonwood trees, short grasses, and shrubs&quot;,
+                        verbatimSiteDescriptions = &quot;A wadeable stream on the western slope of the Sierra Nevada Mountains | mixed mature cottonwood trees, short grasses, and shrubs | 1 km in length&quot;,
                         verbatimSiteNames = &quot;BIGC | Upper Big Creek&quot;,
                         reportedWeather = &quot;{\&quot;minimumWinterTemperatureInDegreesFahrenheit\&quot;: 32,
                                             \&quot;maximumWinterTemperatureInDegreesFahrenheit\&quot;: 48,
@@ -568,24 +573,82 @@ dnaderived_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))</code></pre>
                                             \&quot;annualMeanTemperatureInDegreesFahrenheit\&quot;: 56,
                                             \&quot;annualPrecipitationInInches\&quot;: 34.5}&quot;
                         
-                        )</code></pre>
+                        )
+event_data &lt;- merge(BIGC_data, event_data, all=TRUE)</code></pre>
 </div>
 </div>
 <div id="map-fish-data" class="section level2">
 <h2>Map Fish Data</h2>
 <div id="map-fsh_fielddata" class="section level3">
 <h3>Map fsh_fieldData</h3>
+<div id="reach-data" class="section level4">
+<h4>Reach Data</h4>
 <p>Contains data about the reach/segment itself (e.g., location,
 elevation, fixed/random, etc.)</p>
-<pre class="r"><code>reach_data &lt;- unique(fish.counts$fsh_fieldData[, c(&quot;siteID&quot;, 
-                                                   &quot;namedLocation&quot;, 
-                                                   &quot;aquaticSiteType&quot;, 
+<pre class="r"><code>reach_data &lt;- unique(fish.counts$fsh_fieldData[, c(&quot;namedLocation&quot;,
+                                                   &quot;siteID&quot;,
                                                    &quot;decimalLatitude&quot;,
                                                    &quot;decimalLongitude&quot;,
                                                    &quot;coordinateUncertainty&quot;,
                                                    &quot;elevation&quot;,
                                                    &quot;elevationUncertainty&quot;,
-                                                   &quot;geodeticDatum&quot;)])</code></pre>
+                                                   &quot;geodeticDatum&quot;,
+                                                   &quot;fixedRandomReach&quot;)])
+
+reach_data$minimumElevation &lt;- reach_data$elevation - reach_data$elevationUncertainty
+reach_data$maximumElevation &lt;- reach_data$elevation + reach_data$elevationUncertainty
+
+added_reach_data &lt;- data.frame(eventID = reach_data$namedLocation,
+                               parentEventID = reach_data$siteID,
+                               eventType = &quot;reach&quot;,
+                               eventDate = &quot;XXXX&quot;,
+                               decimalLatitude = reach_data$decimalLatitude,
+                               decimalLongitude = reach_data$decimalLongitude,
+                               coordinateUncertaintyinMeters = reach_data$coordinateUncertainty,
+                               habitat = &quot;XXX&quot;,
+                               geodeticDatum = reach_data$geodeticDatum,
+                               minimumElevationInMeters = reach_data$minimumElevation,
+                               maximumElevationInMeters = reach_data$maximumElevation,
+                               siteCount = ifelse(reach_data$fixedRandomReach == &quot;fixed&quot;, 3, 1),
+                               siteNestingDescription = ifelse(reach_data$fixedRandomReach == &quot;fixed&quot;, &quot;3 passes (replicates)&quot;, &quot;1 pass (replicate)&quot;),
+                               verbatimSiteDescriptions = &quot;~100m long reaches&quot;
+                               )
+
+reach_mof_data &lt;- data.frame(measurementID = &quot;XXX&quot;,
+                             eventID = reach_data$namedLocation,
+                             measurementType = &quot;Reach type (fixed or random)&quot;,
+                             measurementValue = reach_data$fixedRandomReach)
+
+event_data &lt;- merge(added_reach_data, event_data, all=TRUE)
+emof_data &lt;- rbind(reach_mof_data, emof_data)</code></pre>
+</div>
+<div id="reach-sampling-data" class="section level4">
+<h4>Reach Sampling Data</h4>
+<p>Contains data about the reach sampling event (e.g., date, condition,
+protocol, etc.)</p>
+<pre class="r"><code>#?reach condition - kinda like weather
+#?sampling protocol version
+reach_sampling_data &lt;- data.frame(eventID = fish.counts$fsh_fieldData$reachID,
+                                  parentEventID = fish.counts$fsh_fieldData$namedLocation,
+                                  eventType = &quot;reach sampling&quot;,
+                                  eventDate = as.character(fish.counts$fsh_fieldData$startDate),
+                                  eventRemarks = fish.counts$fsh_fieldData$remarks,
+                                  reportedExtremeConditions = fish.counts$fsh_fieldData$samplingImpractical,
+                                  identifiedBy = fish.counts$fsh_fieldData$identifiedBy,
+                                  protocolReferences = fish.counts$fsh_fieldData$samplingProtocolVersion,
+                                  samplingPerformedBy = paste(fish.counts$fsh_fieldData$aCollectedBy, fish.counts$fsh_fieldData$bCollectedBy, fish.counts$fsh_fieldData$cCollectedBy, sep = &quot;, &quot;),
+                                  habitat = fish.counts$fsh_fieldData$reachCondition
+                                   )
+
+reach_sampling_mof_data &lt;- data.frame(measurementID = &quot;XXX&quot;,
+                                      eventID = fish.counts$fsh_fieldData$reachID,
+                                      measurementType = &quot;Measured reach length&quot;,
+                                      measurementValue = fish.counts$fsh_fieldData$measuredReachLength,
+                                      measurementUnit = &quot;m&quot;)
+
+event_data &lt;- merge(reach_sampling_data, event_data, all=TRUE)
+emof_data &lt;- merge(reach_sampling_mof_data, emof_data, all=TRUE)</code></pre>
+</div>
 </div>
 <div id="map-fsh_perpass" class="section level3">
 <h3>Map fsh_perPass</h3>

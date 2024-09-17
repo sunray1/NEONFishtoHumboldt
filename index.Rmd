@@ -111,11 +111,15 @@ dnaderived_data <- data.frame(matrix(ncol = 0, nrow = 0))
 ### NEON Project
 
 ```{r}
+#I think sitecount is wrong - should be entire number of sites in dataset
 NEON_fish_protocol_data <- data.frame(eventID = "NEON_fish",
-                                      eventType = "eventType",
+                                      parentEventID = NA,
+                                      eventType = "project",
                                       eventDate = paste("2019-07-01", Sys.Date(), sep = "/"),
                                       continent = "North America",
                                       country = "United States",
+                                      siteCount = "81",
+                                      siteNestingDescription = "81 field sites (47 terrestrial and 34 freshwater aquatic)",
                                       targetTaxonomicScope = "Osteichthyes",
                                       taxonCompletenessReported = "??",
                                       taxonCompletenessProtocols = "??",
@@ -143,6 +147,7 @@ NEON_fish_protocol_data <- data.frame(eventID = "NEON_fish",
                                       isSamplingEffortReported = "true",
                                       samplingEffortProtocol = "A five-day fish sampling period = 1 bout. Sampling bouts should not be longer than 5 days long assuming no weather or other unexpected schedule delays. Typically one bout can be managed by 2 staff. Person hours can be calculated from start times, end times and number of staff in a sampling pass."
                                     )
+event_data <- rbind(event_data, NEON_fish_protocol_data)
 ```
 
 ### Site Data
@@ -152,7 +157,7 @@ NEON_fish_protocol_data <- data.frame(eventID = "NEON_fish",
 ```{r}
 BIGC_data <- data.frame(eventID = "BIGC",
                         parentEventID = "NEON_fish",
-                        eventType = "eventType",
+                        eventType = "site",
                         eventDate = paste(min(fish.counts$fsh_fieldData$startDate, na.rm = TRUE), 
                                           max(fish.counts$fsh_fieldData$endDate, na.rm = TRUE),
                                           sep = "/"),
@@ -170,7 +175,7 @@ BIGC_data <- data.frame(eventID = "BIGC",
                         maximumElevationInMeters = 1700,
                         siteCount = 10,
                         siteNestingDescription = "Aquatic stream site divided into 10 reaches",
-                        verbatimSiteDescriptions = "A wadeable stream on the western slope of the Sierra Nevada Mountains | mixed mature cottonwood trees, short grasses, and shrubs",
+                        verbatimSiteDescriptions = "A wadeable stream on the western slope of the Sierra Nevada Mountains | mixed mature cottonwood trees, short grasses, and shrubs | 1 km in length",
                         verbatimSiteNames = "BIGC | Upper Big Creek",
                         reportedWeather = "{\"minimumWinterTemperatureInDegreesFahrenheit\": 32,
                                             \"maximumWinterTemperatureInDegreesFahrenheit\": 48,
@@ -180,26 +185,85 @@ BIGC_data <- data.frame(eventID = "BIGC",
                                             \"annualPrecipitationInInches\": 34.5}"
                         
                         )
+event_data <- merge(BIGC_data, event_data, all=TRUE)
+
 ```
 
 ## Map Fish Data
 
 ### Map fsh_fieldData
 
+#### Reach Data
 Contains data about the reach/segment itself (e.g., location, elevation, fixed/random, etc.)
 
 ```{r}
-reach_data <- unique(fish.counts$fsh_fieldData[, c("siteID", 
-                                                   "namedLocation", 
-                                                   "aquaticSiteType", 
+reach_data <- unique(fish.counts$fsh_fieldData[, c("namedLocation",
+                                                   "siteID",
                                                    "decimalLatitude",
                                                    "decimalLongitude",
                                                    "coordinateUncertainty",
                                                    "elevation",
                                                    "elevationUncertainty",
-                                                   "geodeticDatum")])
+                                                   "geodeticDatum",
+                                                   "fixedRandomReach")])
+
+reach_data$minimumElevation <- reach_data$elevation - reach_data$elevationUncertainty
+reach_data$maximumElevation <- reach_data$elevation + reach_data$elevationUncertainty
+
+added_reach_data <- data.frame(eventID = reach_data$namedLocation,
+                               parentEventID = reach_data$siteID,
+                               eventType = "reach",
+                               eventDate = "XXXX",
+                               decimalLatitude = reach_data$decimalLatitude,
+                               decimalLongitude = reach_data$decimalLongitude,
+                               coordinateUncertaintyinMeters = reach_data$coordinateUncertainty,
+                               habitat = "XXX",
+                               geodeticDatum = reach_data$geodeticDatum,
+                               minimumElevationInMeters = reach_data$minimumElevation,
+                               maximumElevationInMeters = reach_data$maximumElevation,
+                               siteCount = ifelse(reach_data$fixedRandomReach == "fixed", 3, 1),
+                               siteNestingDescription = ifelse(reach_data$fixedRandomReach == "fixed", "3 passes (replicates)", "1 pass (replicate)"),
+                               verbatimSiteDescriptions = "~100m long reaches"
+                               )
+
+reach_mof_data <- data.frame(measurementID = "XXX",
+                             eventID = reach_data$namedLocation,
+                             measurementType = "Reach type (fixed or random)",
+                             measurementValue = reach_data$fixedRandomReach)
+
+event_data <- merge(added_reach_data, event_data, all=TRUE)
+emof_data <- rbind(reach_mof_data, emof_data)
 
 ```
+
+#### Reach Sampling Data
+Contains data about the reach sampling event (e.g., date, condition, protocol, etc.)
+
+```{r}
+#?reach condition - kinda like weather
+#?sampling protocol version
+reach_sampling_data <- data.frame(eventID = fish.counts$fsh_fieldData$reachID,
+                                  parentEventID = fish.counts$fsh_fieldData$namedLocation,
+                                  eventType = "reach sampling",
+                                  eventDate = as.character(fish.counts$fsh_fieldData$startDate),
+                                  eventRemarks = fish.counts$fsh_fieldData$remarks,
+                                  reportedExtremeConditions = fish.counts$fsh_fieldData$samplingImpractical,
+                                  identifiedBy = fish.counts$fsh_fieldData$identifiedBy,
+                                  protocolReferences = fish.counts$fsh_fieldData$samplingProtocolVersion,
+                                  samplingPerformedBy = paste(fish.counts$fsh_fieldData$aCollectedBy, fish.counts$fsh_fieldData$bCollectedBy, fish.counts$fsh_fieldData$cCollectedBy, sep = ", "),
+                                  habitat = fish.counts$fsh_fieldData$reachCondition
+                                   )
+
+reach_sampling_mof_data <- data.frame(measurementID = "XXX",
+                                      eventID = fish.counts$fsh_fieldData$reachID,
+                                      measurementType = "Measured reach length",
+                                      measurementValue = fish.counts$fsh_fieldData$measuredReachLength,
+                                      measurementUnit = "m")
+
+event_data <- merge(reach_sampling_data, event_data, all=TRUE)
+emof_data <- merge(reach_sampling_mof_data, emof_data, all=TRUE)
+```
+
 
 ### Map fsh_perPass
 
