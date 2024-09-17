@@ -1,7 +1,7 @@
 ---
 title: "Mapping NEON Fish Data to Humboldt Extension"
 author: "Chandra Earl"
-date: "2024-08-22"
+date: "`r Sys.Date()`"
 output: html_document
 ---
 
