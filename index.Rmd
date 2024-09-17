@@ -5,6 +5,8 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
+https://github.com/sunray1/NEONFishtoHumboldt
+
 The following code will download data from Upper Big Creek (BIGC) (wadeable stream) in California during 2019. The goal is to characterize the two sampling efforts (bouts) in Humboldt Extension terms using the 'OBIS hack', where the typical star schema approach of DwC is broken. This will include vouchered specimens (Occurrence), DNA sequences (DNA Derived Data), fish abundance measurements (Measurement or Fact) and event ecological data (Humboldt).
 
 # Load libraries
