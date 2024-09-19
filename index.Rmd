@@ -17,6 +17,12 @@ setwd("C:/Users/cearl4/Desktop/Labs/ASU/Stuff/Conferences_Workshops/GBIF_Humbolt
 library(neonUtilities)
 library(dplyr)
 library(lubridate)
+library(digest)
+
+digest_vect <- function(var1, var2) {
+  uuids <- mapply(function(v1, v2) digest(paste(v1, v2, sep = "_"), algo = "md5"), var1, var2)
+  return(uuids)
+}
 ```
 
 # Download files
@@ -227,7 +233,7 @@ added_reach_data <- data.frame(eventID = reach_data$namedLocation,
                                verbatimSiteDescriptions = "~100m long reaches"
                                )
 
-reach_mof_data <- data.frame(measurementID = "XXX",
+reach_mof_data <- data.frame(measurementID = digest_vect(reach_data$namedLocation, "Reach type (fixed or random)"),
                              eventID = reach_data$namedLocation,
                              measurementType = "Reach type (fixed or random)",
                              measurementValue = reach_data$fixedRandomReach)
@@ -289,31 +295,31 @@ pass_data <- data.frame(eventID = fish.counts$fsh_perPass$eventID,
                         protocolNames = fish.counts$fsh_perPass$samplerType
                         )
 
-emof_data <- merge(data.frame(measurementID = "XXX",
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Number of the sampling pass within a reach"),
                               eventID = fish.counts$fsh_perPass$eventID,
                               measurementType = "Number of the sampling pass within a reach",
                               measurementValue = fish.counts$fsh_perPass$passNumber), 
                    emof_data, all=TRUE)
-emof_data <- merge(data.frame(measurementID = "XXX",
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Temperature of water"),
                               eventID = fish.counts$fsh_perPass$eventID,
                               measurementType = "Temperature of water",
                               measurementValue = fish.counts$fsh_perPass$waterTemp,
                               measurementUnit = "degrees Celsius"), 
                    emof_data, all=TRUE)
-emof_data <- merge(data.frame(measurementID = "XXX",
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Dissolved Oxygen Concentration"),
                               eventID = fish.counts$fsh_perPass$eventID,
                               measurementType = "Dissolved Oxygen Concentration",
                               measurementValue = fish.counts$fsh_perPass$dissolvedOxygen,
                               measurementUnit = "milligramsPerLiter"), 
                    emof_data, all=TRUE)
-emof_data <- merge(data.frame(measurementID = "XXX",
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Conductivity auto-corrected to 25 degrees C"),
                               eventID = fish.counts$fsh_perPass$eventID,
                               measurementType = "Conductivity auto-corrected to 25 degrees C",
                               measurementValue = fish.counts$fsh_perPass$specificConductance,
                               measurementUnit = "microsiemensPerCentimeter"), 
                    emof_data, all=TRUE)
 if (any(!is.na(fish.counts$fsh_perPass$initialFrequency))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialFrequency)], "Frequency at the start of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialFrequency)],
                                 measurementType = "Frequency at the start of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$initialFrequency[!is.na(fish.counts$fsh_perPass$initialFrequency)],
@@ -321,7 +327,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialFrequency))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$initialDutyCycle))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialDutyCycle)], "Duty cycle at the start of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialDutyCycle)],
                                 measurementType = "Duty cycle at the start of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$initialDutyCycle[!is.na(fish.counts$fsh_perPass$initialDutyCycle)],
@@ -329,7 +335,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialDutyCycle))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$initialVoltage))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialVoltage)], "Voltage at the start of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialVoltage)],
                                 measurementType = "Voltage at the start of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$initialVoltage[!is.na(fish.counts$fsh_perPass$initialVoltage)],
@@ -337,7 +343,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialVoltage))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalFrequency))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalFrequency)], "Voltage at the end of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalFrequency)],
                                 measurementType = "Voltage at the end of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$finalFrequency[!is.na(fish.counts$fsh_perPass$finalFrequency)],
@@ -345,7 +351,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalFrequency))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalDutyCycle))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalDutyCycle)], "Duty cycle at the end of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalDutyCycle)],
                                 measurementType = "Duty cycle at the end of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$finalDutyCycle[!is.na(fish.counts$fsh_perPass$finalDutyCycle)],
@@ -353,7 +359,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalDutyCycle))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalVoltage))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalVoltage)], "Voltage at the end of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalVoltage)],
                                 measurementType = "Voltage at the end of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$finalVoltage[!is.na(fish.counts$fsh_perPass$finalVoltage)],
@@ -361,7 +367,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalVoltage))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$efTime))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$efTime)], "Operational time of the electrofisher for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$efTime)],
                                 measurementType = "Operational time of the electrofisher for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$efTime[!is.na(fish.counts$fsh_perPass$efTime)],
@@ -369,14 +375,14 @@ if (any(!is.na(fish.counts$fsh_perPass$efTime))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$settingsChanged))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged)], "Number of times the settings changed for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged)],
                                 measurementType = "Number of times the settings changed for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$settingsChanged[!is.na(fish.counts$fsh_perPass$settingsChanged)]), 
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$initialFrequency2))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialFrequency2)], "Frequency at the start of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialFrequency2)],
                                 measurementType = "Frequency at the start of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$initialFrequency2[!is.na(fish.counts$fsh_perPass$initialFrequency2)],
@@ -384,7 +390,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialFrequency2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$initialDutyCycle2))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialDutyCycle2)], "Duty cycle at the start of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialDutyCycle2)],
                                 measurementType = "Duty cycle at the start of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$initialDutyCycle2[!is.na(fish.counts$fsh_perPass$initialDutyCycle2)],
@@ -392,7 +398,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialDutyCycle2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$initialVoltage2))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialVoltage2)], "Voltage at the start of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialVoltage2)],
                                 measurementType = "Voltage at the start of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$initialVoltage2[!is.na(fish.counts$fsh_perPass$initialVoltage2)],
@@ -400,7 +406,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialVoltage2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalFrequency2))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalFrequency2)], "Voltage at the end of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalFrequency2)],
                                 measurementType = "Voltage at the end of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$finalFrequency2[!is.na(fish.counts$fsh_perPass$finalFrequency2)],
@@ -408,7 +414,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalFrequency2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalDutyCycle2))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalDutyCycle2)], "Duty cycle at the end of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalDutyCycle2)],
                                 measurementType = "Duty cycle at the end of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$finalDutyCycle2[!is.na(fish.counts$fsh_perPass$finalDutyCycle2)],
@@ -416,7 +422,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalDutyCycle2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalVoltage2))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalVoltage2)], "Voltage at the end of data collection for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalVoltage2)],
                                 measurementType = "Voltage at the end of data collection for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$finalVoltage2[!is.na(fish.counts$fsh_perPass$finalVoltage2)],
@@ -424,7 +430,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalVoltage2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$efTime2))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$efTime2)], "Operational time of the electrofisher for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$efTime2)],
                                 measurementType = "Operational time of the electrofisher for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$efTime2[!is.na(fish.counts$fsh_perPass$efTime2)],
@@ -432,7 +438,7 @@ if (any(!is.na(fish.counts$fsh_perPass$efTime2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$settingsChanged2))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)], "Number of times the settings changed for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)],
                                 measurementType = "Number of times the settings changed for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$settingsChanged2[!is.na(fish.counts$fsh_perPass$settingsChanged2)]), 
@@ -440,7 +446,7 @@ if (any(!is.na(fish.counts$fsh_perPass$settingsChanged2))) {
 }
 #net integrity
 if (any(!is.na(fish.counts$fsh_perPass$settingsChanged2))) {
-  emof_data <- merge(data.frame(measurementID = "XXX",
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)], "Number of times the settings changed for the second electrofisher"),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)],
                                 measurementType = "Number of times the settings changed for the second electrofisher",
                                 measurementValue = fish.counts$fsh_perPass$settingsChanged2[!is.na(fish.counts$fsh_perPass$settingsChanged2)]), 
