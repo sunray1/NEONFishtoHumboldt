@@ -279,7 +279,7 @@ pass_data <- data.frame(eventID = fish.counts$fsh_perPass$eventID,
                         parentEventID = fish.counts$fsh_perPass$reachID,
                         eventType = "pass sampling",
                         eventDate = as.character(as.Date(fish.counts$fsh_perPass$passStartTime)),
-                        eventTime <- ifelse(fish.counts$fsh_perPass$samplerType == "electrofisher",
+                        eventTime = ifelse(fish.counts$fsh_perPass$samplerType == "electrofisher",
                                             paste(as.character(format(fish.counts$fsh_perPass$passStartTime, "%H:%M:%S%Z")),
                                                   as.character(format(fish.counts$fsh_perPass$passEndTime, "%H:%M:%S%Z")), sep = "/"),
                                             paste(as.character(format(fish.counts$fsh_perPass$netSetTime, "%H:%M:%S%Z")),
@@ -287,7 +287,7 @@ pass_data <- data.frame(eventID = fish.counts$fsh_perPass$eventID,
                         ),
                         eventRemarks = fish.counts$fsh_perPass$remarks,
                         habitat = paste("Habitat type: ", fish.counts$fsh_perPass$habitatType, "; subDominant Habitat Type: ", fish.counts$fsh_perPass$subdominantHabitatType, sep=""),
-                        eventDurationValue <- ifelse(fish.counts$fsh_perPass$samplerType == "electrofisher",
+                        eventDurationValue = ifelse(fish.counts$fsh_perPass$samplerType == "electrofisher",
                                                      fish.counts$fsh_perPass$passEndTime - fish.counts$fsh_perPass$passStartTime,
                                                      fish.counts$fsh_perPass$netEndTime - fish.counts$fsh_perPass$netSetTime)
                         ,
@@ -444,19 +444,107 @@ if (any(!is.na(fish.counts$fsh_perPass$settingsChanged2))) {
                                 measurementValue = fish.counts$fsh_perPass$settingsChanged2[!is.na(fish.counts$fsh_perPass$settingsChanged2)]), 
                      emof_data, all = TRUE)
 }
-#net integrity
-if (any(!is.na(fish.counts$fsh_perPass$settingsChanged2))) {
-  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)], "Number of times the settings changed for the second electrofisher"),
-                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)],
-                                measurementType = "Number of times the settings changed for the second electrofisher",
-                                measurementValue = fish.counts$fsh_perPass$settingsChanged2[!is.na(fish.counts$fsh_perPass$settingsChanged2)]), 
+
+if (any(!is.na(fish.counts$fsh_perPass$netLength))) {
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$netLength)], "Length of the net"),
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$netLength)],
+                                measurementType = "Length of the net",
+                                measurementValue = fish.counts$fsh_perPass$netLength[!is.na(fish.counts$fsh_perPass$netLength)],
+                                measurementUnit = "meter"),
                      emof_data, all = TRUE)
 }
+
+if (any(!is.na(fish.counts$fsh_perPass$netDepth))) {
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$netDepth)], "Deployment depth of the net"),
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$netDepth)],
+                                measurementType = "Deployment depth of the net",
+                                measurementValue = fish.counts$fsh_perPass$netDepth[!is.na(fish.counts$fsh_perPass$netDepth)],
+                                measurementUnit = "meter"),
+                     emof_data, all = TRUE)
+}
+
+if (any(fish.counts$fsh_perPass$samplerType != "electrofisher")) {
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[fish.counts$fsh_perPass$samplerType != "electrofisher"], "Indication of the integrity of the net"),
+                                eventID = fish.counts$fsh_perPass$eventID[fish.counts$fsh_perPass$samplerType != "electrofisher"],
+                                measurementType = "Indication of the integrity of the net",
+                                measurementValue = fish.counts$fsh_perPass$netIntegrity[fish.counts$fsh_perPass$samplerType != "electrofisher"]),
+                     emof_data, all = TRUE)
+}
+
+event_data <- merge(pass_data, event_data, all=TRUE)
+
 ```
 
 ### Map fsh_perFish
 
 ```{r}
+indfish_data <- data.frame(occurrenceID = fish.counts$fsh_perFish$uid,
+                           eventID = fish.counts$fsh_perFish$eventID,
+                           basisOfRecord = ifelse(grepl("voucher", fish.counts$fsh_perFish$sampleTypeCollected, ignore.case = TRUE),
+                                           "PreservedSpecimen",
+                                           ifelse(grepl("dna", fish.counts$fsh_perFish$sampleTypeCollected, ignore.case = TRUE),
+                                                  "MaterialSample",
+                                                  "HumanObservation")),
+                           taxonID = fish.counts$fsh_perFish$taxonID,
+                           scientificName = fish.counts$fsh_perFish$scientificName,
+                           taxonRank = fish.counts$fsh_perFish$taxonRank,
+                           identificationQualifier = fish.counts$fsh_perFish$identificationQualifier,
+                           lifeStage = fish.counts$fsh_perFish$fishLifeStage,
+                           identifiedByID = paste("https://orcid.org/", fish.counts$fsh_perFish$identifiedBy, sep=""),
+                           occurrenceRemarks = fish.counts$fsh_perFish$remarks,
+                           individualCount = 1,
+                           occurrenceStatus = 'present',
+                           otherCatalogNumbers = XXXX,
+                           preparations = ifelse(grepl("dna sample only", fish.counts$fsh_perFish$sampleTypeCollected, ignore.case = TRUE),
+                                           "DNA Extract", NA)
+                           
+                        )
+
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Number of the specimen"),
+                              eventID = fish.counts$fsh_perFish$specimenNumber,
+                              measurementType = "Number of the specimen",
+                              measurementValue = fish.counts$fsh_perFish$specimenNumber), 
+                   emof_data, all=TRUE)
+
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Length of the specimen"),
+                              eventID = fish.counts$fsh_perFish$fishTotalLength,
+                              measurementType = "Length of the specimen",
+                              measurementValue = fish.counts$fsh_perFish$fishTotalLength,
+                              measurementUnit = "millimeter"), 
+                   emof_data, all=TRUE)
+
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Live weight as measured in the field"),
+                              eventID = fish.counts$fsh_perFish$fishWeight,
+                              measurementType = "Live weight as measured in the field",
+                              measurementValue = fish.counts$fsh_perFish$fishWeight,
+                              measurementUnit = "gram"), 
+                   emof_data, all=TRUE)
+
+if (any(!is.na(fish.counts$fsh_perFish$delt))) {
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$delt)], "Indication of any deformities, eroded fins, lesions/parasites, tumors"),
+                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$delt)],
+                                measurementType = "Indication of any deformities, eroded fins, lesions/parasites, tumors",
+                                measurementValue = fish.counts$fsh_perFish$delt[!is.na(fish.counts$fsh_perFish$delt)]), 
+                     emof_data, all = TRUE)
+}
+
+if (any(!is.na(fish.counts$fsh_perFish$efMortality))) {
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efMortality)], "Indication of mortality from the electrofishing equipment"),
+                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efMortality)],
+                                measurementType = "Indication of mortality from the electrofishing equipment",
+                                measurementValue = fish.counts$fsh_perFish$efMortality[!is.na(fish.counts$fsh_perFish$efMortality)]), 
+                     emof_data, all = TRUE)
+}
+
+if (any(!is.na(fish.counts$fsh_perFish$efInjury))) {
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efInjury)], "Indication of injury from the electrofishing equipment (burn marks, bent spine, hemorrhage)"),
+                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efInjury)],
+                                measurementType = "Indication of injury from the electrofishing equipment (burn marks, bent spine, hemorrhage)",
+                                measurementValue = fish.counts$fsh_perFish$efInjury[!is.na(fish.counts$fsh_perFish$efInjury)]), 
+                     emof_data, all = TRUE)
+}
+
+occurrence_data <- rbind(indfish_data, occurrence_data)
 
 ```
 
