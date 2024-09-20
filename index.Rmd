@@ -494,10 +494,14 @@ indfish_data <- data.frame(occurrenceID = fish.counts$fsh_perFish$uid,
                            occurrenceRemarks = fish.counts$fsh_perFish$remarks,
                            individualCount = 1,
                            occurrenceStatus = 'present',
-                           otherCatalogNumbers = XXXX,
-                           preparations = ifelse(grepl("dna sample only", fish.counts$fsh_perFish$sampleTypeCollected, ignore.case = TRUE),
-                                           "DNA Extract", NA)
-                           
+                           otherCatalogNumbers = ifelse(!is.na(fish.counts$fsh_perFish$voucherSampleID) & !is.na(fish.counts$fsh_perFish$dnaSampleID),
+                              paste(fish.counts$fsh_perFish$voucherSampleID, fish.counts$fsh_perFish$dnaSampleID, sep = " | "),
+                              ifelse(!is.na(fish.counts$fsh_perFish$voucherSampleID),
+                                     fish.counts$fsh_perFish$voucherSampleID,
+                                     ifelse(!is.na(fish.counts$fsh_perFish$dnaSampleID),
+                                            fish.counts$fsh_perFish$dnaSampleID,
+                                            NA))),
+                           preparations = ifelse(fish.counts$fsh_perFish$sampleTypeCollected == "no sample", NA, fish.counts$fsh_perFish$sampleTypeCollected)
                         )
 
 emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Number of the specimen"),
@@ -551,11 +555,51 @@ occurrence_data <- rbind(indfish_data, occurrence_data)
 ### Map fsh_bulkCount
 
 ```{r}
+bulkfish_data <- data.frame(occurrenceID = fish.counts$fsh_bulkCount$uid,
+                            eventID = fish.counts$fsh_bulkCount$eventID,
+                            basisOfRecord = "HumanObservation",
+                            taxonID = fish.counts$fsh_bulkCount$taxonID,
+                            scientificName = fish.counts$fsh_bulkCount$scientificName,
+                            identificationQualifier = fish.counts$fsh_bulkCount$identificationQualifier,
+                            identifiedByID = paste("https://orcid.org/", fish.counts$fsh_bulkCount$identifiedBy, sep=""),
+                            occurrenceRemarks = fish.counts$fsh_bulkCount$remarks,
+                            individualCount = fish.counts$fsh_bulkCount$bulkInvertCount,
+                            occurrenceStatus = 'present',
+                            otherCatalogNumbers = paste(voucherSampleID, voucherSampleCode, sep = " | ")
+                        )
+
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_bulkCount$eventID, "The number of specimens found dead in bulk processing"),
+                              eventID = fish.counts$fsh_bulkCount$bulkMortality,
+                              measurementType = "The number of specimens found dead in bulk processing",
+                              measurementValue = fish.counts$fsh_bulkCount$bulkMortality), 
+                   emof_data, all=TRUE)
+
+occurrence_data <- merge(bulkfish_data, occurrence_data, all=TRUE)
 
 ```
 
 ### Map fsh_invertBycatch
 
 ```{r}
+bycatch_data <- data.frame(occurrenceID = fish.counts$fsh_invertBycatch$uid,
+                            eventID = fish.counts$fsh_invertBycatch$eventID,
+                            basisOfRecord = "PreservedSpecimen",
+                            taxonID = fish.counts$fsh_invertBycatch$taxonID,
+                            scientificName = fish.counts$fsh_invertBycatch$scientificName,
+                            identificationQualifier = fish.counts$fsh_invertBycatch$identificationQualifier,
+                            identifiedByID = paste("https://orcid.org/", fish.counts$fsh_invertBycatch$identifiedBy, sep=""),
+                            occurrenceRemarks = fish.counts$fsh_invertBycatch$remarks,
+                            individualCount = fish.counts$fsh_invertBycatch$bulkFishCount,
+                            occurrenceStatus = 'present'
+                        )
+
+occurrence_data <- merge(bycatch_data, occurrence_data, all=TRUE)
+
 
 ```
+
+## Map Media Data
+
+## Map DNA Data
+
+## Map Environmental Data
