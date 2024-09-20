@@ -410,7 +410,7 @@ digest_vect &lt;- function(var1, var2) {
 ## Copied the most recent publication of categoricalCodes file to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 4 data tables and 4 metadata tables!
-## Stacking took 0.974704 secs</code></pre>
+## Stacking took 0.896013 secs</code></pre>
 <pre class="r"><code>#fish.coi &lt;- loadByProduct(dpID=&quot;DP1.20105.001&quot;, 
 #                           site=c(&quot;BIGC&quot;),
 #                           startdate=&quot;2019-01&quot;, 
@@ -482,7 +482,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.8426809 secs</code></pre>
+## Stacking took 0.840734 secs</code></pre>
 <pre><code>## Warning: Downloading only table SAAT_30min. Downloading by table is not recommended unless you are already familiar with the data product and its contents.</code></pre>
 <pre><code>## Finding available files
 ##   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
@@ -496,7 +496,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.5846739 secs</code></pre>
+## Stacking took 0.597048 secs</code></pre>
 </div>
 </div>
 <div id="map-data" class="section level1">
@@ -889,33 +889,27 @@ event_data &lt;- merge(pass_data, event_data, all=TRUE)</code></pre>
                            preparations = ifelse(fish.counts$fsh_perFish$sampleTypeCollected == &quot;no sample&quot;, NA, fish.counts$fsh_perFish$sampleTypeCollected)
                         )
 
-emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, &quot;Number of the specimen&quot;),
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, &quot;Number of the specimen&quot;),
                               eventID = fish.counts$fsh_perFish$specimenNumber,
                               measurementType = &quot;Number of the specimen&quot;,
                               measurementValue = fish.counts$fsh_perFish$specimenNumber), 
-                   emof_data, all=TRUE)</code></pre>
-<pre><code>## Warning in data.frame(measurementID =
-## digest_vect(fish.counts$fsh_perPass$eventID, : row names were found from a
-## short variable and have been discarded</code></pre>
-<pre class="r"><code>emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, &quot;Length of the specimen&quot;),
+                   emof_data, all=TRUE)
+
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, &quot;Length of the specimen&quot;),
                               eventID = fish.counts$fsh_perFish$fishTotalLength,
                               measurementType = &quot;Length of the specimen&quot;,
                               measurementValue = fish.counts$fsh_perFish$fishTotalLength,
                               measurementUnit = &quot;millimeter&quot;), 
-                   emof_data, all=TRUE)</code></pre>
-<pre><code>## Warning in data.frame(measurementID =
-## digest_vect(fish.counts$fsh_perPass$eventID, : row names were found from a
-## short variable and have been discarded</code></pre>
-<pre class="r"><code>emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, &quot;Live weight as measured in the field&quot;),
+                   emof_data, all=TRUE)
+
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, &quot;Live weight as measured in the field&quot;),
                               eventID = fish.counts$fsh_perFish$fishWeight,
                               measurementType = &quot;Live weight as measured in the field&quot;,
                               measurementValue = fish.counts$fsh_perFish$fishWeight,
                               measurementUnit = &quot;gram&quot;), 
-                   emof_data, all=TRUE)</code></pre>
-<pre><code>## Warning in data.frame(measurementID =
-## digest_vect(fish.counts$fsh_perPass$eventID, : row names were found from a
-## short variable and have been discarded</code></pre>
-<pre class="r"><code>if (any(!is.na(fish.counts$fsh_perFish$delt))) {
+                   emof_data, all=TRUE)
+
+if (any(!is.na(fish.counts$fsh_perFish$delt))) {
   emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$delt)], &quot;Indication of any deformities, eroded fins, lesions/parasites, tumors&quot;),
                                 eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$delt)],
                                 measurementType = &quot;Indication of any deformities, eroded fins, lesions/parasites, tumors&quot;,

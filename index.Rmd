@@ -506,20 +506,20 @@ indfish_data <- data.frame(occurrenceID = fish.counts$fsh_perFish$uid,
                            preparations = ifelse(fish.counts$fsh_perFish$sampleTypeCollected == "no sample", NA, fish.counts$fsh_perFish$sampleTypeCollected)
                         )
 
-emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Number of the specimen"),
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, "Number of the specimen"),
                               eventID = fish.counts$fsh_perFish$specimenNumber,
                               measurementType = "Number of the specimen",
                               measurementValue = fish.counts$fsh_perFish$specimenNumber), 
                    emof_data, all=TRUE)
 
-emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Length of the specimen"),
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, "Length of the specimen"),
                               eventID = fish.counts$fsh_perFish$fishTotalLength,
                               measurementType = "Length of the specimen",
                               measurementValue = fish.counts$fsh_perFish$fishTotalLength,
                               measurementUnit = "millimeter"), 
                    emof_data, all=TRUE)
 
-emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, "Live weight as measured in the field"),
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, "Live weight as measured in the field"),
                               eventID = fish.counts$fsh_perFish$fishWeight,
                               measurementType = "Live weight as measured in the field",
                               measurementValue = fish.counts$fsh_perFish$fishWeight,
