@@ -11,7 +11,7 @@
 
 <meta name="author" content="Chandra Earl" />
 
-<meta name="date" content="2024-09-17" />
+<meta name="date" content="2024-09-20" />
 
 <title>Mapping NEON Fish Data to Humboldt Extension</title>
 
@@ -353,7 +353,7 @@ display: none;
 <h1 class="title toc-ignore">Mapping NEON Fish Data to Humboldt
 Extension</h1>
 <h4 class="author">Chandra Earl</h4>
-<h4 class="date">2024-09-17</h4>
+<h4 class="date">2024-09-20</h4>
 
 </div>
 
@@ -372,14 +372,21 @@ event ecological data (Humboldt).</p>
 
 library(neonUtilities)
 library(dplyr)
-library(lubridate)</code></pre>
+library(lubridate)
+library(digest)
+library(bold)
+
+digest_vect &lt;- function(var1, var2) {
+  uuids &lt;- mapply(function(v1, v2) digest(paste(v1, v2, sep = &quot;_&quot;), algo = &quot;md5&quot;), var1, var2)
+  return(uuids)
+}</code></pre>
 </div>
 <div id="download-files" class="section level1">
 <h1>Download files</h1>
 <p><a href="https://data.neonscience.org/data-products/DP1.20107.001" class="uri">https://data.neonscience.org/data-products/DP1.20107.001</a></p>
 <p><a href="https://www.neonscience.org/field-sites/bigc" class="uri">https://www.neonscience.org/field-sites/bigc</a></p>
-<div id="get-fish-count-data" class="section level2">
-<h2>Get Fish Count data</h2>
+<div id="get-fish-data" class="section level2">
+<h2>Get Fish data</h2>
 <pre class="r"><code>fish.counts &lt;- loadByProduct(dpID=&quot;DP1.20107.001&quot;, 
                            site=c(&quot;BIGC&quot;),    #stream site
                            #site=c(&quot;PRLA&quot;),   #lake site
@@ -403,11 +410,13 @@ library(lubridate)</code></pre>
 ## Copied the most recent publication of categoricalCodes file to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 4 data tables and 4 metadata tables!
-## Stacking took 0.9017951 secs</code></pre>
+## Stacking took 0.974704 secs</code></pre>
 <pre class="r"><code>#fish.coi &lt;- loadByProduct(dpID=&quot;DP1.20105.001&quot;, 
 #                           site=c(&quot;BIGC&quot;),
 #                           startdate=&quot;2019-01&quot;, 
 #                           enddate=&quot;2019-12&quot;)
+
+fish.coi &lt;- bold_seqspec(ids=fish.counts$fsh_perFish$dnaSampleID[!is.na(fish.counts$fsh_perFish$dnaSampleID)], sepfasta = TRUE)
 
 #water.quality &lt;- loadByProduct(dpID=&quot;DP1.20288.001&quot;, 
 #                           site=c(&quot;BIGC&quot;),
@@ -473,7 +482,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.5891531 secs</code></pre>
+## Stacking took 0.8426809 secs</code></pre>
 <pre><code>## Warning: Downloading only table SAAT_30min. Downloading by table is not recommended unless you are already familiar with the data product and its contents.</code></pre>
 <pre><code>## Finding available files
 ##   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
@@ -487,7 +496,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.594636 secs</code></pre>
+## Stacking took 0.5846739 secs</code></pre>
 </div>
 </div>
 <div id="map-data" class="section level1">
@@ -498,7 +507,8 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 occurrence_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
 emof_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
 multimedia_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
-dnaderived_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))</code></pre>
+dnaderived_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
+idenfitication_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))</code></pre>
 </div>
 <div id="create-parent-event-data" class="section level2">
 <h2>Create Parent Event Data</h2>
@@ -615,7 +625,7 @@ added_reach_data &lt;- data.frame(eventID = reach_data$namedLocation,
                                verbatimSiteDescriptions = &quot;~100m long reaches&quot;
                                )
 
-reach_mof_data &lt;- data.frame(measurementID = &quot;XXX&quot;,
+reach_mof_data &lt;- data.frame(measurementID = digest_vect(reach_data$namedLocation, &quot;Reach type (fixed or random)&quot;),
                              eventID = reach_data$namedLocation,
                              measurementType = &quot;Reach type (fixed or random)&quot;,
                              measurementValue = reach_data$fixedRandomReach)
@@ -657,7 +667,7 @@ emof_data &lt;- merge(reach_sampling_mof_data, emof_data, all=TRUE)</code></pre>
                         parentEventID = fish.counts$fsh_perPass$reachID,
                         eventType = &quot;pass sampling&quot;,
                         eventDate = as.character(as.Date(fish.counts$fsh_perPass$passStartTime)),
-                        eventTime &lt;- ifelse(fish.counts$fsh_perPass$samplerType == &quot;electrofisher&quot;,
+                        eventTime = ifelse(fish.counts$fsh_perPass$samplerType == &quot;electrofisher&quot;,
                                             paste(as.character(format(fish.counts$fsh_perPass$passStartTime, &quot;%H:%M:%S%Z&quot;)),
                                                   as.character(format(fish.counts$fsh_perPass$passEndTime, &quot;%H:%M:%S%Z&quot;)), sep = &quot;/&quot;),
                                             paste(as.character(format(fish.counts$fsh_perPass$netSetTime, &quot;%H:%M:%S%Z&quot;)),
@@ -665,7 +675,7 @@ emof_data &lt;- merge(reach_sampling_mof_data, emof_data, all=TRUE)</code></pre>
                         ),
                         eventRemarks = fish.counts$fsh_perPass$remarks,
                         habitat = paste(&quot;Habitat type: &quot;, fish.counts$fsh_perPass$habitatType, &quot;; subDominant Habitat Type: &quot;, fish.counts$fsh_perPass$subdominantHabitatType, sep=&quot;&quot;),
-                        eventDurationValue &lt;- ifelse(fish.counts$fsh_perPass$samplerType == &quot;electrofisher&quot;,
+                        eventDurationValue = ifelse(fish.counts$fsh_perPass$samplerType == &quot;electrofisher&quot;,
                                                      fish.counts$fsh_perPass$passEndTime - fish.counts$fsh_perPass$passStartTime,
                                                      fish.counts$fsh_perPass$netEndTime - fish.counts$fsh_perPass$netSetTime)
                         ,
@@ -673,31 +683,31 @@ emof_data &lt;- merge(reach_sampling_mof_data, emof_data, all=TRUE)</code></pre>
                         protocolNames = fish.counts$fsh_perPass$samplerType
                         )
 
-emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, &quot;Number of the sampling pass within a reach&quot;),
                               eventID = fish.counts$fsh_perPass$eventID,
                               measurementType = &quot;Number of the sampling pass within a reach&quot;,
                               measurementValue = fish.counts$fsh_perPass$passNumber), 
                    emof_data, all=TRUE)
-emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, &quot;Temperature of water&quot;),
                               eventID = fish.counts$fsh_perPass$eventID,
                               measurementType = &quot;Temperature of water&quot;,
                               measurementValue = fish.counts$fsh_perPass$waterTemp,
                               measurementUnit = &quot;degrees Celsius&quot;), 
                    emof_data, all=TRUE)
-emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, &quot;Dissolved Oxygen Concentration&quot;),
                               eventID = fish.counts$fsh_perPass$eventID,
                               measurementType = &quot;Dissolved Oxygen Concentration&quot;,
                               measurementValue = fish.counts$fsh_perPass$dissolvedOxygen,
                               measurementUnit = &quot;milligramsPerLiter&quot;), 
                    emof_data, all=TRUE)
-emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, &quot;Conductivity auto-corrected to 25 degrees C&quot;),
                               eventID = fish.counts$fsh_perPass$eventID,
                               measurementType = &quot;Conductivity auto-corrected to 25 degrees C&quot;,
                               measurementValue = fish.counts$fsh_perPass$specificConductance,
                               measurementUnit = &quot;microsiemensPerCentimeter&quot;), 
                    emof_data, all=TRUE)
 if (any(!is.na(fish.counts$fsh_perPass$initialFrequency))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialFrequency)], &quot;Frequency at the start of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialFrequency)],
                                 measurementType = &quot;Frequency at the start of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$initialFrequency[!is.na(fish.counts$fsh_perPass$initialFrequency)],
@@ -705,7 +715,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialFrequency))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$initialDutyCycle))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialDutyCycle)], &quot;Duty cycle at the start of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialDutyCycle)],
                                 measurementType = &quot;Duty cycle at the start of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$initialDutyCycle[!is.na(fish.counts$fsh_perPass$initialDutyCycle)],
@@ -713,7 +723,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialDutyCycle))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$initialVoltage))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialVoltage)], &quot;Voltage at the start of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialVoltage)],
                                 measurementType = &quot;Voltage at the start of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$initialVoltage[!is.na(fish.counts$fsh_perPass$initialVoltage)],
@@ -721,7 +731,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialVoltage))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalFrequency))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalFrequency)], &quot;Voltage at the end of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalFrequency)],
                                 measurementType = &quot;Voltage at the end of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$finalFrequency[!is.na(fish.counts$fsh_perPass$finalFrequency)],
@@ -729,7 +739,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalFrequency))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalDutyCycle))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalDutyCycle)], &quot;Duty cycle at the end of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalDutyCycle)],
                                 measurementType = &quot;Duty cycle at the end of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$finalDutyCycle[!is.na(fish.counts$fsh_perPass$finalDutyCycle)],
@@ -737,7 +747,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalDutyCycle))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalVoltage))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalVoltage)], &quot;Voltage at the end of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalVoltage)],
                                 measurementType = &quot;Voltage at the end of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$finalVoltage[!is.na(fish.counts$fsh_perPass$finalVoltage)],
@@ -745,7 +755,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalVoltage))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$efTime))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$efTime)], &quot;Operational time of the electrofisher for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$efTime)],
                                 measurementType = &quot;Operational time of the electrofisher for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$efTime[!is.na(fish.counts$fsh_perPass$efTime)],
@@ -753,14 +763,14 @@ if (any(!is.na(fish.counts$fsh_perPass$efTime))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$settingsChanged))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged)], &quot;Number of times the settings changed for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged)],
                                 measurementType = &quot;Number of times the settings changed for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$settingsChanged[!is.na(fish.counts$fsh_perPass$settingsChanged)]), 
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$initialFrequency2))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialFrequency2)], &quot;Frequency at the start of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialFrequency2)],
                                 measurementType = &quot;Frequency at the start of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$initialFrequency2[!is.na(fish.counts$fsh_perPass$initialFrequency2)],
@@ -768,7 +778,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialFrequency2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$initialDutyCycle2))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialDutyCycle2)], &quot;Duty cycle at the start of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialDutyCycle2)],
                                 measurementType = &quot;Duty cycle at the start of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$initialDutyCycle2[!is.na(fish.counts$fsh_perPass$initialDutyCycle2)],
@@ -776,7 +786,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialDutyCycle2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$initialVoltage2))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialVoltage2)], &quot;Voltage at the start of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$initialVoltage2)],
                                 measurementType = &quot;Voltage at the start of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$initialVoltage2[!is.na(fish.counts$fsh_perPass$initialVoltage2)],
@@ -784,7 +794,7 @@ if (any(!is.na(fish.counts$fsh_perPass$initialVoltage2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalFrequency2))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalFrequency2)], &quot;Voltage at the end of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalFrequency2)],
                                 measurementType = &quot;Voltage at the end of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$finalFrequency2[!is.na(fish.counts$fsh_perPass$finalFrequency2)],
@@ -792,7 +802,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalFrequency2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalDutyCycle2))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalDutyCycle2)], &quot;Duty cycle at the end of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalDutyCycle2)],
                                 measurementType = &quot;Duty cycle at the end of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$finalDutyCycle2[!is.na(fish.counts$fsh_perPass$finalDutyCycle2)],
@@ -800,7 +810,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalDutyCycle2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$finalVoltage2))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalVoltage2)], &quot;Voltage at the end of data collection for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$finalVoltage2)],
                                 measurementType = &quot;Voltage at the end of data collection for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$finalVoltage2[!is.na(fish.counts$fsh_perPass$finalVoltage2)],
@@ -808,7 +818,7 @@ if (any(!is.na(fish.counts$fsh_perPass$finalVoltage2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$efTime2))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$efTime2)], &quot;Operational time of the electrofisher for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$efTime2)],
                                 measurementType = &quot;Operational time of the electrofisher for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$efTime2[!is.na(fish.counts$fsh_perPass$efTime2)],
@@ -816,30 +826,178 @@ if (any(!is.na(fish.counts$fsh_perPass$efTime2))) {
                      emof_data, all = TRUE)
 }
 if (any(!is.na(fish.counts$fsh_perPass$settingsChanged2))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)], &quot;Number of times the settings changed for the second electrofisher&quot;),
                                 eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)],
                                 measurementType = &quot;Number of times the settings changed for the second electrofisher&quot;,
                                 measurementValue = fish.counts$fsh_perPass$settingsChanged2[!is.na(fish.counts$fsh_perPass$settingsChanged2)]), 
                      emof_data, all = TRUE)
 }
-#net integrity
-if (any(!is.na(fish.counts$fsh_perPass$settingsChanged2))) {
-  emof_data &lt;- merge(data.frame(measurementID = &quot;XXX&quot;,
-                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$settingsChanged2)],
-                                measurementType = &quot;Number of times the settings changed for the second electrofisher&quot;,
-                                measurementValue = fish.counts$fsh_perPass$settingsChanged2[!is.na(fish.counts$fsh_perPass$settingsChanged2)]), 
+
+if (any(!is.na(fish.counts$fsh_perPass$netLength))) {
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$netLength)], &quot;Length of the net&quot;),
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$netLength)],
+                                measurementType = &quot;Length of the net&quot;,
+                                measurementValue = fish.counts$fsh_perPass$netLength[!is.na(fish.counts$fsh_perPass$netLength)],
+                                measurementUnit = &quot;meter&quot;),
                      emof_data, all = TRUE)
-}</code></pre>
+}
+
+if (any(!is.na(fish.counts$fsh_perPass$netDepth))) {
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$netDepth)], &quot;Deployment depth of the net&quot;),
+                                eventID = fish.counts$fsh_perPass$eventID[!is.na(fish.counts$fsh_perPass$netDepth)],
+                                measurementType = &quot;Deployment depth of the net&quot;,
+                                measurementValue = fish.counts$fsh_perPass$netDepth[!is.na(fish.counts$fsh_perPass$netDepth)],
+                                measurementUnit = &quot;meter&quot;),
+                     emof_data, all = TRUE)
+}
+
+if (any(fish.counts$fsh_perPass$samplerType != &quot;electrofisher&quot;)) {
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID[fish.counts$fsh_perPass$samplerType != &quot;electrofisher&quot;], &quot;Indication of the integrity of the net&quot;),
+                                eventID = fish.counts$fsh_perPass$eventID[fish.counts$fsh_perPass$samplerType != &quot;electrofisher&quot;],
+                                measurementType = &quot;Indication of the integrity of the net&quot;,
+                                measurementValue = fish.counts$fsh_perPass$netIntegrity[fish.counts$fsh_perPass$samplerType != &quot;electrofisher&quot;]),
+                     emof_data, all = TRUE)
+}
+
+event_data &lt;- merge(pass_data, event_data, all=TRUE)</code></pre>
 </div>
 <div id="map-fsh_perfish" class="section level3">
 <h3>Map fsh_perFish</h3>
+<pre class="r"><code>indfish_data &lt;- data.frame(occurrenceID = fish.counts$fsh_perFish$uid,
+                           eventID = fish.counts$fsh_perFish$eventID,
+                           basisOfRecord = ifelse(grepl(&quot;voucher&quot;, fish.counts$fsh_perFish$sampleTypeCollected, ignore.case = TRUE),
+                                           &quot;PreservedSpecimen&quot;,
+                                           ifelse(grepl(&quot;dna&quot;, fish.counts$fsh_perFish$sampleTypeCollected, ignore.case = TRUE),
+                                                  &quot;MaterialSample&quot;,
+                                                  &quot;HumanObservation&quot;)),
+                           taxonID = fish.counts$fsh_perFish$taxonID,
+                           scientificName = fish.counts$fsh_perFish$scientificName,
+                           taxonRank = fish.counts$fsh_perFish$taxonRank,
+                           identificationQualifier = fish.counts$fsh_perFish$identificationQualifier,
+                           lifeStage = fish.counts$fsh_perFish$fishLifeStage,
+                           identifiedByID = paste(&quot;https://orcid.org/&quot;, fish.counts$fsh_perFish$identifiedBy, sep=&quot;&quot;),
+                           occurrenceRemarks = fish.counts$fsh_perFish$remarks,
+                           individualCount = 1,
+                           occurrenceStatus = &#39;present&#39;,
+                           otherCatalogNumbers = ifelse(!is.na(fish.counts$fsh_perFish$voucherSampleID) &amp; !is.na(fish.counts$fsh_perFish$dnaSampleID),
+                              paste(fish.counts$fsh_perFish$voucherSampleID, fish.counts$fsh_perFish$dnaSampleID, sep = &quot; | &quot;),
+                              ifelse(!is.na(fish.counts$fsh_perFish$voucherSampleID),
+                                     fish.counts$fsh_perFish$voucherSampleID,
+                                     ifelse(!is.na(fish.counts$fsh_perFish$dnaSampleID),
+                                            fish.counts$fsh_perFish$dnaSampleID,
+                                            NA))),
+                           preparations = ifelse(fish.counts$fsh_perFish$sampleTypeCollected == &quot;no sample&quot;, NA, fish.counts$fsh_perFish$sampleTypeCollected)
+                        )
+
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, &quot;Number of the specimen&quot;),
+                              eventID = fish.counts$fsh_perFish$specimenNumber,
+                              measurementType = &quot;Number of the specimen&quot;,
+                              measurementValue = fish.counts$fsh_perFish$specimenNumber), 
+                   emof_data, all=TRUE)</code></pre>
+<pre><code>## Warning in data.frame(measurementID =
+## digest_vect(fish.counts$fsh_perPass$eventID, : row names were found from a
+## short variable and have been discarded</code></pre>
+<pre class="r"><code>emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, &quot;Length of the specimen&quot;),
+                              eventID = fish.counts$fsh_perFish$fishTotalLength,
+                              measurementType = &quot;Length of the specimen&quot;,
+                              measurementValue = fish.counts$fsh_perFish$fishTotalLength,
+                              measurementUnit = &quot;millimeter&quot;), 
+                   emof_data, all=TRUE)</code></pre>
+<pre><code>## Warning in data.frame(measurementID =
+## digest_vect(fish.counts$fsh_perPass$eventID, : row names were found from a
+## short variable and have been discarded</code></pre>
+<pre class="r"><code>emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perPass$eventID, &quot;Live weight as measured in the field&quot;),
+                              eventID = fish.counts$fsh_perFish$fishWeight,
+                              measurementType = &quot;Live weight as measured in the field&quot;,
+                              measurementValue = fish.counts$fsh_perFish$fishWeight,
+                              measurementUnit = &quot;gram&quot;), 
+                   emof_data, all=TRUE)</code></pre>
+<pre><code>## Warning in data.frame(measurementID =
+## digest_vect(fish.counts$fsh_perPass$eventID, : row names were found from a
+## short variable and have been discarded</code></pre>
+<pre class="r"><code>if (any(!is.na(fish.counts$fsh_perFish$delt))) {
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$delt)], &quot;Indication of any deformities, eroded fins, lesions/parasites, tumors&quot;),
+                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$delt)],
+                                measurementType = &quot;Indication of any deformities, eroded fins, lesions/parasites, tumors&quot;,
+                                measurementValue = fish.counts$fsh_perFish$delt[!is.na(fish.counts$fsh_perFish$delt)]), 
+                     emof_data, all = TRUE)
+}
+
+if (any(!is.na(fish.counts$fsh_perFish$efMortality))) {
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efMortality)], &quot;Indication of mortality from the electrofishing equipment&quot;),
+                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efMortality)],
+                                measurementType = &quot;Indication of mortality from the electrofishing equipment&quot;,
+                                measurementValue = fish.counts$fsh_perFish$efMortality[!is.na(fish.counts$fsh_perFish$efMortality)]), 
+                     emof_data, all = TRUE)
+}
+
+if (any(!is.na(fish.counts$fsh_perFish$efInjury))) {
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efInjury)], &quot;Indication of injury from the electrofishing equipment (burn marks, bent spine, hemorrhage)&quot;),
+                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efInjury)],
+                                measurementType = &quot;Indication of injury from the electrofishing equipment (burn marks, bent spine, hemorrhage)&quot;,
+                                measurementValue = fish.counts$fsh_perFish$efInjury[!is.na(fish.counts$fsh_perFish$efInjury)]), 
+                     emof_data, all = TRUE)
+}
+
+occurrence_data &lt;- rbind(indfish_data, occurrence_data)</code></pre>
 </div>
 <div id="map-fsh_bulkcount" class="section level3">
 <h3>Map fsh_bulkCount</h3>
+<pre class="r"><code>bulkfish_data &lt;- data.frame(occurrenceID = fish.counts$fsh_bulkCount$uid,
+                            eventID = fish.counts$fsh_bulkCount$eventID,
+                            basisOfRecord = &quot;HumanObservation&quot;,
+                            taxonID = fish.counts$fsh_bulkCount$taxonID,
+                            scientificName = fish.counts$fsh_bulkCount$scientificName,
+                            identificationQualifier = fish.counts$fsh_bulkCount$identificationQualifier,
+                            identifiedByID = paste(&quot;https://orcid.org/&quot;, fish.counts$fsh_bulkCount$identifiedBy, sep=&quot;&quot;),
+                            occurrenceRemarks = fish.counts$fsh_bulkCount$remarks,
+                            individualCount = fish.counts$fsh_bulkCount$bulkFishCount,
+                            occurrenceStatus = &#39;present&#39;
+                        )
+
+#emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_bulkCount$eventID, &quot;The number of specimens found dead in bulk processing&quot;),
+#                              eventID = fish.counts$fsh_bulkCount$bulkMortality,
+#                              measurementType = &quot;The number of specimens found dead in bulk processing&quot;,
+#                              measurementValue = fish.counts$fsh_bulkCount$bulkMortality), 
+#                   emof_data, all=TRUE)
+
+occurrence_data &lt;- merge(bulkfish_data, occurrence_data, all=TRUE)</code></pre>
 </div>
 <div id="map-fsh_invertbycatch" class="section level3">
 <h3>Map fsh_invertBycatch</h3>
+<pre class="r"><code>bycatch_data &lt;- data.frame(occurrenceID = fish.counts$fsh_invertBycatch$uid,
+                            eventID = fish.counts$fsh_invertBycatch$eventID,
+                            basisOfRecord = &quot;PreservedSpecimen&quot;,
+                            taxonID = fish.counts$fsh_invertBycatch$taxonID,
+                            scientificName = fish.counts$fsh_invertBycatch$scientificName,
+                            identificationQualifier = fish.counts$fsh_invertBycatch$identificationQualifier,
+                            identifiedByID = paste(&quot;https://orcid.org/&quot;, fish.counts$fsh_invertBycatch$identifiedBy, sep=&quot;&quot;),
+                            occurrenceRemarks = fish.counts$fsh_invertBycatch$remarks,
+                            individualCount = fish.counts$fsh_invertBycatch$bulkInvertCount,
+                            occurrenceStatus = &#39;present&#39;
+                        )
+
+occurrence_data &lt;- merge(bycatch_data, occurrence_data, all=TRUE)</code></pre>
 </div>
+</div>
+<div id="map-media-data" class="section level2">
+<h2>Map Media Data</h2>
+</div>
+<div id="map-dna-data" class="section level2">
+<h2>Map DNA Data</h2>
+<pre class="r"><code>fishdna_data &lt;- data.frame(samp_name = fish.coi$data$sampleid,
+                           occurrenceID = fish.counts$fsh_perFish$uid[match(fish.coi$data$sampleid, fish.counts$fsh_perFish$dnaSampleID)],
+                           samp_collec_method = &quot;fin clip&quot;,
+                           target_gene = &quot;Cytochrome Oxidase Subunit 1 5&#39; Region&quot;,
+                           url = paste(&quot;https://www.boldsystems.org/index.php/Public_RecordView?processid=&quot;, fish.coi$data$processid, sep=&quot;&quot;),
+                           DNA_sequence = unname(unlist(fish.coi$fasta)),
+                           pcr_primer_name_forward = &quot;C_FishF1t1&quot;,
+                           pcr_primer_name_reverse = &quot;C_FishR1t1&quot;
+                           )
+dnaderived_data &lt;- rbind(dnaderived_data, fishdna_data)</code></pre>
+</div>
+<div id="map-environmental-data" class="section level2">
+<h2>Map Environmental Data</h2>
 </div>
 </div>
 

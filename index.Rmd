@@ -18,6 +18,7 @@ library(neonUtilities)
 library(dplyr)
 library(lubridate)
 library(digest)
+library(bold)
 
 digest_vect <- function(var1, var2) {
   uuids <- mapply(function(v1, v2) digest(paste(v1, v2, sep = "_"), algo = "md5"), var1, var2)
@@ -31,7 +32,7 @@ digest_vect <- function(var1, var2) {
 
 <https://www.neonscience.org/field-sites/bigc>
 
-## Get Fish Count data
+## Get Fish data
 
 ```{r}
 fish.counts <- loadByProduct(dpID="DP1.20107.001", 
@@ -45,6 +46,8 @@ fish.counts <- loadByProduct(dpID="DP1.20107.001",
 #                           site=c("BIGC"),
 #                           startdate="2019-01", 
 #                           enddate="2019-12")
+
+fish.coi <- bold_seqspec(ids=fish.counts$fsh_perFish$dnaSampleID[!is.na(fish.counts$fsh_perFish$dnaSampleID)], sepfasta = TRUE)
 
 #water.quality <- loadByProduct(dpID="DP1.20288.001", 
 #                           site=c("BIGC"),
@@ -111,6 +114,7 @@ occurrence_data <- data.frame(matrix(ncol = 0, nrow = 0))
 emof_data <- data.frame(matrix(ncol = 0, nrow = 0))
 multimedia_data <- data.frame(matrix(ncol = 0, nrow = 0))
 dnaderived_data <- data.frame(matrix(ncol = 0, nrow = 0))
+idenfitication_data <- data.frame(matrix(ncol = 0, nrow = 0))
 ```
 
 ## Create Parent Event Data
@@ -273,7 +277,6 @@ emof_data <- merge(reach_sampling_mof_data, emof_data, all=TRUE)
 
 
 ### Map fsh_perPass
-
 ```{r}
 pass_data <- data.frame(eventID = fish.counts$fsh_perPass$eventID,
                         parentEventID = fish.counts$fsh_perPass$reachID,
@@ -476,7 +479,6 @@ event_data <- merge(pass_data, event_data, all=TRUE)
 ```
 
 ### Map fsh_perFish
-
 ```{r}
 indfish_data <- data.frame(occurrenceID = fish.counts$fsh_perFish$uid,
                            eventID = fish.counts$fsh_perFish$eventID,
@@ -553,7 +555,6 @@ occurrence_data <- rbind(indfish_data, occurrence_data)
 ```
 
 ### Map fsh_bulkCount
-
 ```{r}
 bulkfish_data <- data.frame(occurrenceID = fish.counts$fsh_bulkCount$uid,
                             eventID = fish.counts$fsh_bulkCount$eventID,
@@ -563,24 +564,22 @@ bulkfish_data <- data.frame(occurrenceID = fish.counts$fsh_bulkCount$uid,
                             identificationQualifier = fish.counts$fsh_bulkCount$identificationQualifier,
                             identifiedByID = paste("https://orcid.org/", fish.counts$fsh_bulkCount$identifiedBy, sep=""),
                             occurrenceRemarks = fish.counts$fsh_bulkCount$remarks,
-                            individualCount = fish.counts$fsh_bulkCount$bulkInvertCount,
-                            occurrenceStatus = 'present',
-                            otherCatalogNumbers = paste(voucherSampleID, voucherSampleCode, sep = " | ")
+                            individualCount = fish.counts$fsh_bulkCount$bulkFishCount,
+                            occurrenceStatus = 'present'
                         )
 
-emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_bulkCount$eventID, "The number of specimens found dead in bulk processing"),
-                              eventID = fish.counts$fsh_bulkCount$bulkMortality,
-                              measurementType = "The number of specimens found dead in bulk processing",
-                              measurementValue = fish.counts$fsh_bulkCount$bulkMortality), 
-                   emof_data, all=TRUE)
+#emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_bulkCount$eventID, "The number of specimens found dead in bulk processing"),
+#                              eventID = fish.counts$fsh_bulkCount$bulkMortality,
+#                              measurementType = "The number of specimens found dead in bulk processing",
+#                              measurementValue = fish.counts$fsh_bulkCount$bulkMortality), 
+#                   emof_data, all=TRUE)
 
 occurrence_data <- merge(bulkfish_data, occurrence_data, all=TRUE)
 
 ```
 
 ### Map fsh_invertBycatch
-
-```{r}
+```{r eval=FALSE}
 bycatch_data <- data.frame(occurrenceID = fish.counts$fsh_invertBycatch$uid,
                             eventID = fish.counts$fsh_invertBycatch$eventID,
                             basisOfRecord = "PreservedSpecimen",
@@ -589,7 +588,7 @@ bycatch_data <- data.frame(occurrenceID = fish.counts$fsh_invertBycatch$uid,
                             identificationQualifier = fish.counts$fsh_invertBycatch$identificationQualifier,
                             identifiedByID = paste("https://orcid.org/", fish.counts$fsh_invertBycatch$identifiedBy, sep=""),
                             occurrenceRemarks = fish.counts$fsh_invertBycatch$remarks,
-                            individualCount = fish.counts$fsh_invertBycatch$bulkFishCount,
+                            individualCount = fish.counts$fsh_invertBycatch$bulkInvertCount,
                             occurrenceStatus = 'present'
                         )
 
@@ -601,5 +600,19 @@ occurrence_data <- merge(bycatch_data, occurrence_data, all=TRUE)
 ## Map Media Data
 
 ## Map DNA Data
+```{r}
+fishdna_data <- data.frame(samp_name = fish.coi$data$sampleid,
+                           occurrenceID = fish.counts$fsh_perFish$uid[match(fish.coi$data$sampleid, fish.counts$fsh_perFish$dnaSampleID)],
+                           samp_collec_method = "fin clip",
+                           target_gene = "Cytochrome Oxidase Subunit 1 5' Region",
+                           url = paste("https://www.boldsystems.org/index.php/Public_RecordView?processid=", fish.coi$data$processid, sep=""),
+                           DNA_sequence = unname(unlist(fish.coi$fasta)),
+                           pcr_primer_name_forward = "C_FishF1t1",
+                           pcr_primer_name_reverse = "C_FishR1t1"
+                           )
+dnaderived_data <- rbind(dnaderived_data, fishdna_data)
+
+```
+
 
 ## Map Environmental Data
