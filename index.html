@@ -11,7 +11,7 @@
 
 <meta name="author" content="Chandra Earl" />
 
-<meta name="date" content="2024-09-20" />
+<meta name="date" content="2024-09-23" />
 
 <title>Mapping NEON Fish Data to Humboldt Extension</title>
 
@@ -353,7 +353,7 @@ display: none;
 <h1 class="title toc-ignore">Mapping NEON Fish Data to Humboldt
 Extension</h1>
 <h4 class="author">Chandra Earl</h4>
-<h4 class="date">2024-09-20</h4>
+<h4 class="date">2024-09-23</h4>
 
 </div>
 
@@ -410,7 +410,7 @@ digest_vect &lt;- function(var1, var2) {
 ## Copied the most recent publication of categoricalCodes file to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 4 data tables and 4 metadata tables!
-## Stacking took 0.896013 secs</code></pre>
+## Stacking took 2.181931 secs</code></pre>
 <pre class="r"><code>#fish.coi &lt;- loadByProduct(dpID=&quot;DP1.20105.001&quot;, 
 #                           site=c(&quot;BIGC&quot;),
 #                           startdate=&quot;2019-01&quot;, 
@@ -482,7 +482,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.840734 secs</code></pre>
+## Stacking took 1.22802 secs</code></pre>
 <pre><code>## Warning: Downloading only table SAAT_30min. Downloading by table is not recommended unless you are already familiar with the data product and its contents.</code></pre>
 <pre><code>## Finding available files
 ##   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
@@ -496,7 +496,7 @@ for (i in 1:nrow(fish.counts.coll.date.ranges)) {
 ## Merged the most recent publication of sensor position files for each site and saved to /stackedFiles
 ## Copied the most recent publication of variable definition file to /stackedFiles
 ## Finished: Stacked 1 data tables and 3 metadata tables!
-## Stacking took 0.597048 secs</code></pre>
+## Stacking took 0.909184 secs</code></pre>
 </div>
 </div>
 <div id="map-data" class="section level1">
@@ -508,7 +508,7 @@ occurrence_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
 emof_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
 multimedia_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
 dnaderived_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))
-idenfitication_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))</code></pre>
+identification_data &lt;- data.frame(matrix(ncol = 0, nrow = 0))</code></pre>
 </div>
 <div id="create-parent-event-data" class="section level2">
 <h2>Create Parent Event Data</h2>
@@ -889,45 +889,45 @@ event_data &lt;- merge(pass_data, event_data, all=TRUE)</code></pre>
                            preparations = ifelse(fish.counts$fsh_perFish$sampleTypeCollected == &quot;no sample&quot;, NA, fish.counts$fsh_perFish$sampleTypeCollected)
                         )
 
-emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, &quot;Number of the specimen&quot;),
-                              eventID = fish.counts$fsh_perFish$specimenNumber,
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid, &quot;Number of the specimen&quot;),
+                              occurrenceID = fish.counts$fsh_perFish$uid,
                               measurementType = &quot;Number of the specimen&quot;,
                               measurementValue = fish.counts$fsh_perFish$specimenNumber), 
                    emof_data, all=TRUE)
 
-emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, &quot;Length of the specimen&quot;),
-                              eventID = fish.counts$fsh_perFish$fishTotalLength,
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid, &quot;Length of the specimen&quot;),
+                              occurrenceID = fish.counts$fsh_perFish$uid,
                               measurementType = &quot;Length of the specimen&quot;,
                               measurementValue = fish.counts$fsh_perFish$fishTotalLength,
                               measurementUnit = &quot;millimeter&quot;), 
                    emof_data, all=TRUE)
 
-emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, &quot;Live weight as measured in the field&quot;),
-                              eventID = fish.counts$fsh_perFish$fishWeight,
+emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid, &quot;Live weight as measured in the field&quot;),
+                              occurrenceID = fish.counts$fsh_perFish$uid,
                               measurementType = &quot;Live weight as measured in the field&quot;,
                               measurementValue = fish.counts$fsh_perFish$fishWeight,
                               measurementUnit = &quot;gram&quot;), 
                    emof_data, all=TRUE)
 
 if (any(!is.na(fish.counts$fsh_perFish$delt))) {
-  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$delt)], &quot;Indication of any deformities, eroded fins, lesions/parasites, tumors&quot;),
-                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$delt)],
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$delt)], &quot;Indication of any deformities, eroded fins, lesions/parasites, tumors&quot;),
+                                occurrenceID = fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$delt)],
                                 measurementType = &quot;Indication of any deformities, eroded fins, lesions/parasites, tumors&quot;,
                                 measurementValue = fish.counts$fsh_perFish$delt[!is.na(fish.counts$fsh_perFish$delt)]), 
                      emof_data, all = TRUE)
 }
 
 if (any(!is.na(fish.counts$fsh_perFish$efMortality))) {
-  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efMortality)], &quot;Indication of mortality from the electrofishing equipment&quot;),
-                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efMortality)],
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$efMortality)], &quot;Indication of mortality from the electrofishing equipment&quot;),
+                                occurrenceID = fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$efMortality)],
                                 measurementType = &quot;Indication of mortality from the electrofishing equipment&quot;,
                                 measurementValue = fish.counts$fsh_perFish$efMortality[!is.na(fish.counts$fsh_perFish$efMortality)]), 
                      emof_data, all = TRUE)
 }
 
 if (any(!is.na(fish.counts$fsh_perFish$efInjury))) {
-  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efInjury)], &quot;Indication of injury from the electrofishing equipment (burn marks, bent spine, hemorrhage)&quot;),
-                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efInjury)],
+  emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$efInjury)], &quot;Indication of injury from the electrofishing equipment (burn marks, bent spine, hemorrhage)&quot;),
+                                occurrenceID = fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$efInjury)],
                                 measurementType = &quot;Indication of injury from the electrofishing equipment (burn marks, bent spine, hemorrhage)&quot;,
                                 measurementValue = fish.counts$fsh_perFish$efInjury[!is.na(fish.counts$fsh_perFish$efInjury)]), 
                      emof_data, all = TRUE)
@@ -949,8 +949,8 @@ occurrence_data &lt;- rbind(indfish_data, occurrence_data)</code></pre>
                             occurrenceStatus = &#39;present&#39;
                         )
 
-#emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_bulkCount$eventID, &quot;The number of specimens found dead in bulk processing&quot;),
-#                              eventID = fish.counts$fsh_bulkCount$bulkMortality,
+#emof_data &lt;- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_bulkCount$uid, &quot;The number of specimens found dead in bulk processing&quot;),
+#                              occurrenceID = fish.counts$fsh_bulkCount$uid,
 #                              measurementType = &quot;The number of specimens found dead in bulk processing&quot;,
 #                              measurementValue = fish.counts$fsh_bulkCount$bulkMortality), 
 #                   emof_data, all=TRUE)
@@ -993,6 +993,15 @@ dnaderived_data &lt;- rbind(dnaderived_data, fishdna_data)</code></pre>
 <div id="map-environmental-data" class="section level2">
 <h2>Map Environmental Data</h2>
 </div>
+</div>
+<div id="save-data" class="section level1">
+<h1>Save Data</h1>
+<pre class="r"><code>write.csv(event_data, &quot;output/event.csv&quot;, row.names = FALSE)
+write.csv(occurrence_data, &quot;output/occurrence.csv&quot;, row.names = FALSE)
+write.csv(emof_data, &quot;output/extendedMeasurementOrFact.csv&quot;, row.names = FALSE)
+write.csv(multimedia_data, &quot;output/multimedia.csv&quot;, row.names = FALSE)
+write.csv(dnaderived_data, &quot;output/dnaDerivedData.csv&quot;, row.names = FALSE)
+write.csv(identification_data, &quot;output/identification.csv&quot;, row.names = FALSE)</code></pre>
 </div>
 
 

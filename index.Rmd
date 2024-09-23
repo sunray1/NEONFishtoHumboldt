@@ -114,7 +114,7 @@ occurrence_data <- data.frame(matrix(ncol = 0, nrow = 0))
 emof_data <- data.frame(matrix(ncol = 0, nrow = 0))
 multimedia_data <- data.frame(matrix(ncol = 0, nrow = 0))
 dnaderived_data <- data.frame(matrix(ncol = 0, nrow = 0))
-idenfitication_data <- data.frame(matrix(ncol = 0, nrow = 0))
+identification_data <- data.frame(matrix(ncol = 0, nrow = 0))
 ```
 
 ## Create Parent Event Data
@@ -506,45 +506,45 @@ indfish_data <- data.frame(occurrenceID = fish.counts$fsh_perFish$uid,
                            preparations = ifelse(fish.counts$fsh_perFish$sampleTypeCollected == "no sample", NA, fish.counts$fsh_perFish$sampleTypeCollected)
                         )
 
-emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, "Number of the specimen"),
-                              eventID = fish.counts$fsh_perFish$specimenNumber,
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid, "Number of the specimen"),
+                              occurrenceID = fish.counts$fsh_perFish$uid,
                               measurementType = "Number of the specimen",
                               measurementValue = fish.counts$fsh_perFish$specimenNumber), 
                    emof_data, all=TRUE)
 
-emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, "Length of the specimen"),
-                              eventID = fish.counts$fsh_perFish$fishTotalLength,
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid, "Length of the specimen"),
+                              occurrenceID = fish.counts$fsh_perFish$uid,
                               measurementType = "Length of the specimen",
                               measurementValue = fish.counts$fsh_perFish$fishTotalLength,
                               measurementUnit = "millimeter"), 
                    emof_data, all=TRUE)
 
-emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID, "Live weight as measured in the field"),
-                              eventID = fish.counts$fsh_perFish$fishWeight,
+emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid, "Live weight as measured in the field"),
+                              occurrenceID = fish.counts$fsh_perFish$uid,
                               measurementType = "Live weight as measured in the field",
                               measurementValue = fish.counts$fsh_perFish$fishWeight,
                               measurementUnit = "gram"), 
                    emof_data, all=TRUE)
 
 if (any(!is.na(fish.counts$fsh_perFish$delt))) {
-  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$delt)], "Indication of any deformities, eroded fins, lesions/parasites, tumors"),
-                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$delt)],
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$delt)], "Indication of any deformities, eroded fins, lesions/parasites, tumors"),
+                                occurrenceID = fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$delt)],
                                 measurementType = "Indication of any deformities, eroded fins, lesions/parasites, tumors",
                                 measurementValue = fish.counts$fsh_perFish$delt[!is.na(fish.counts$fsh_perFish$delt)]), 
                      emof_data, all = TRUE)
 }
 
 if (any(!is.na(fish.counts$fsh_perFish$efMortality))) {
-  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efMortality)], "Indication of mortality from the electrofishing equipment"),
-                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efMortality)],
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$efMortality)], "Indication of mortality from the electrofishing equipment"),
+                                occurrenceID = fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$efMortality)],
                                 measurementType = "Indication of mortality from the electrofishing equipment",
                                 measurementValue = fish.counts$fsh_perFish$efMortality[!is.na(fish.counts$fsh_perFish$efMortality)]), 
                      emof_data, all = TRUE)
 }
 
 if (any(!is.na(fish.counts$fsh_perFish$efInjury))) {
-  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efInjury)], "Indication of injury from the electrofishing equipment (burn marks, bent spine, hemorrhage)"),
-                                eventID = fish.counts$fsh_perFish$eventID[!is.na(fish.counts$fsh_perFish$efInjury)],
+  emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$efInjury)], "Indication of injury from the electrofishing equipment (burn marks, bent spine, hemorrhage)"),
+                                occurrenceID = fish.counts$fsh_perFish$uid[!is.na(fish.counts$fsh_perFish$efInjury)],
                                 measurementType = "Indication of injury from the electrofishing equipment (burn marks, bent spine, hemorrhage)",
                                 measurementValue = fish.counts$fsh_perFish$efInjury[!is.na(fish.counts$fsh_perFish$efInjury)]), 
                      emof_data, all = TRUE)
@@ -568,8 +568,8 @@ bulkfish_data <- data.frame(occurrenceID = fish.counts$fsh_bulkCount$uid,
                             occurrenceStatus = 'present'
                         )
 
-#emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_bulkCount$eventID, "The number of specimens found dead in bulk processing"),
-#                              eventID = fish.counts$fsh_bulkCount$bulkMortality,
+#emof_data <- merge(data.frame(measurementID = digest_vect(fish.counts$fsh_bulkCount$uid, "The number of specimens found dead in bulk processing"),
+#                              occurrenceID = fish.counts$fsh_bulkCount$uid,
 #                              measurementType = "The number of specimens found dead in bulk processing",
 #                              measurementValue = fish.counts$fsh_bulkCount$bulkMortality), 
 #                   emof_data, all=TRUE)
@@ -598,6 +598,10 @@ occurrence_data <- merge(bycatch_data, occurrence_data, all=TRUE)
 ```
 
 ## Map Media Data
+```{r}
+
+```
+
 
 ## Map DNA Data
 ```{r}
@@ -616,3 +620,18 @@ dnaderived_data <- rbind(dnaderived_data, fishdna_data)
 
 
 ## Map Environmental Data
+```{r}
+
+```
+
+
+# Save Data
+```{r}
+write.csv(event_data, "output/event.csv", row.names = FALSE)
+write.csv(occurrence_data, "output/occurrence.csv", row.names = FALSE)
+write.csv(emof_data, "output/extendedMeasurementOrFact.csv", row.names = FALSE)
+write.csv(multimedia_data, "output/multimedia.csv", row.names = FALSE)
+write.csv(dnaderived_data, "output/dnaDerivedData.csv", row.names = FALSE)
+write.csv(identification_data, "output/identification.csv", row.names = FALSE)
+```
+
