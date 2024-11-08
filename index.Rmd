@@ -251,8 +251,9 @@ emof_data <- rbind(reach_mof_data, emof_data)
 Contains data about the reach sampling event (e.g., date, condition, protocol, etc.)
 
 ```{r}
-#?reach condition - kinda like weather
-#?sampling protocol version
+#?reach condition - kinda like weather - emof
+#?reach length - could go in totalAreaSampled but ignore that is it technically an area field
+
 reach_sampling_data <- data.frame(eventID = fish.counts$fsh_fieldData$reachID,
                                   parentEventID = fish.counts$fsh_fieldData$namedLocation,
                                   eventType = "reach sampling",
@@ -480,6 +481,7 @@ event_data <- merge(pass_data, event_data, all=TRUE)
 
 ### Map fsh_perFish
 ```{r}
+#? what's going on with materialsample
 indfish_data <- data.frame(occurrenceID = fish.counts$fsh_perFish$uid,
                            eventID = fish.counts$fsh_perFish$eventID,
                            basisOfRecord = ifelse(grepl("voucher", fish.counts$fsh_perFish$sampleTypeCollected, ignore.case = TRUE),
